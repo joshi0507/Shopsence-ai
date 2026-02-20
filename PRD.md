@@ -34,12 +34,12 @@
 
 ### 1.2 Value Proposition
 
-| For | Value Delivered |
-|-----|-----------------|
-| **Small Businesses** | Enterprise-grade analytics without enterprise complexity |
-| **Retail Managers** | Real-time visibility into product performance and sales trends |
-| **Data Analysts** | Automated insights generation, freeing time for strategic work |
-| **Executives** | Clear, actionable recommendations backed by data |
+| For                  | Value Delivered                                                |
+| -------------------- | -------------------------------------------------------------- |
+| **Small Businesses** | Enterprise-grade analytics without enterprise complexity       |
+| **Retail Managers**  | Real-time visibility into product performance and sales trends |
+| **Data Analysts**    | Automated insights generation, freeing time for strategic work |
+| **Executives**       | Clear, actionable recommendations backed by data               |
 
 ### 1.3 Key Differentiators
 
@@ -60,6 +60,7 @@
 ### 2.2 Mission
 
 Empower businesses to make data-driven decisions by providing:
+
 - Instant analysis of sales data
 - AI-generated strategic recommendations
 - Predictive forecasting for planning
@@ -84,18 +85,19 @@ Empower businesses to make data-driven decisions by providing:
 
 ### 3.1 Current Market Challenges
 
-| Problem | Impact | Current Solutions |
-|---------|--------|-------------------|
-| **Data Silos** | Scattered data across spreadsheets, POS systems, e-commerce platforms | Manual consolidation, error-prone |
-| **Analysis Paralysis** | Too much data, not enough insights | Basic dashboards without context |
-| **Delayed Insights** | Weekly/monthly reports miss real-time opportunities | Batch processing, lag time |
-| **High Cost** | Enterprise BI tools cost $50-200/user/month | Tableau, Power BI, Looker |
-| **Complexity** | Steep learning curve for non-technical users | Requires training, dedicated analysts |
-| **No Actionable Guidance** | Charts show "what" but not "what to do" | Descriptive analytics only |
+| Problem                    | Impact                                                                | Current Solutions                     |
+| -------------------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| **Data Silos**             | Scattered data across spreadsheets, POS systems, e-commerce platforms | Manual consolidation, error-prone     |
+| **Analysis Paralysis**     | Too much data, not enough insights                                    | Basic dashboards without context      |
+| **Delayed Insights**       | Weekly/monthly reports miss real-time opportunities                   | Batch processing, lag time            |
+| **High Cost**              | Enterprise BI tools cost $50-200/user/month                           | Tableau, Power BI, Looker             |
+| **Complexity**             | Steep learning curve for non-technical users                          | Requires training, dedicated analysts |
+| **No Actionable Guidance** | Charts show "what" but not "what to do"                               | Descriptive analytics only            |
 
 ### 3.2 Problem Validation
 
 **Research Findings:**
+
 - 73% of SMBs don't use analytics due to complexity/cost (Gartner 2025)
 - Average time to insight: 4-6 hours for manual analysis
 - 68% of business decisions made without adequate data support
@@ -118,6 +120,7 @@ ShopSense AI addresses these challenges through:
 ### 4.1 Primary Personas
 
 #### 👤 Persona 1: Sarah - Retail Store Owner
+
 ```
 Demographics:
 - Age: 35-50
@@ -145,6 +148,7 @@ How ShopSense Helps:
 ```
 
 #### 👤 Persona 2: Mike - E-commerce Manager
+
 ```
 Demographics:
 - Age: 28-40
@@ -172,6 +176,7 @@ How ShopSense Helps:
 ```
 
 #### 👤 Persona 3: Jennifer - Business Analyst
+
 ```
 Demographics:
 - Age: 30-45
@@ -200,12 +205,12 @@ How ShopSense Helps:
 
 ### 4.2 Market Segmentation
 
-| Segment | Size | Priority | Characteristics |
-|---------|------|----------|-----------------|
-| **SMB Retail** | 500K+ businesses | 🔴 High | 1-10 employees, <$10M revenue |
-| **E-commerce** | 200K+ stores | 🔴 High | Online-first, multi-channel |
-| **Mid-Market** | 50K+ companies | 🟡 Medium | 50-500 employees, dedicated analysts |
-| **Enterprise** | 5K+ corporations | 🟢 Future | Complex needs, custom integrations |
+| Segment        | Size             | Priority  | Characteristics                      |
+| -------------- | ---------------- | --------- | ------------------------------------ |
+| **SMB Retail** | 500K+ businesses | 🔴 High   | 1-10 employees, <$10M revenue        |
+| **E-commerce** | 200K+ stores     | 🔴 High   | Online-first, multi-channel          |
+| **Mid-Market** | 50K+ companies   | 🟡 Medium | 50-500 employees, dedicated analysts |
+| **Enterprise** | 5K+ corporations | 🟢 Future | Complex needs, custom integrations   |
 
 ### 4.3 Market Size
 
@@ -219,39 +224,42 @@ How ShopSense Helps:
 
 ### 5.1 Product Goals (12-Month)
 
-| Goal | Metric | Target | Timeline |
-|------|--------|--------|----------|
+| Goal                 | Metric            | Target | Timeline |
+| -------------------- | ----------------- | ------ | -------- |
 | **User Acquisition** | Active Businesses | 10,000 | Month 12 |
-| **Engagement** | DAU/MAU Ratio | >40% | Month 6 |
-| **Retention** | Monthly Churn | <5% | Month 6 |
-| **Revenue** | MRR | $500K | Month 12 |
-| **Satisfaction** | NPS Score | >50 | Month 6 |
+| **Engagement**       | DAU/MAU Ratio     | >40%   | Month 6  |
+| **Retention**        | Monthly Churn     | <5%    | Month 6  |
+| **Revenue**          | MRR               | $500K  | Month 12 |
+| **Satisfaction**     | NPS Score         | >50    | Month 6  |
 
 ### 5.2 Technical Objectives
 
-| Objective | KPI | Target |
-|-----------|-----|--------|
-| **Performance** | Dashboard Load Time | <2 seconds |
-| **Reliability** | Uptime SLA | 99.9% |
-| **Scalability** | Concurrent Users | 10,000+ |
-| **Security** | Security Score | A+ (SSL Labs) |
-| **Quality** | Test Coverage | >80% |
+| Objective       | KPI                 | Target        |
+| --------------- | ------------------- | ------------- |
+| **Performance** | Dashboard Load Time | <2 seconds    |
+| **Reliability** | Uptime SLA          | 99.9%         |
+| **Scalability** | Concurrent Users    | 10,000+       |
+| **Security**    | Security Score      | A+ (SSL Labs) |
+| **Quality**     | Test Coverage       | >80%          |
 
 ### 5.3 Success Criteria
 
 **Phase 1 (Months 1-3): MVP Launch**
+
 - [ ] Core analytics working end-to-end
 - [ ] 100 beta users onboarded
 - [ ] <1% critical bug rate
 - [ ] Security audit passed
 
 **Phase 2 (Months 4-6): Growth**
+
 - [ ] 1,000 active businesses
 - [ ] 5+ data source integrations
 - [ ] Mobile app launched
 - [ ] NPS >40
 
 **Phase 3 (Months 7-12): Scale**
+
 - [ ] 10,000 active businesses
 - [ ] Enterprise tier launched
 - [ ] API marketplace launched
@@ -295,18 +303,19 @@ How ShopSense Helps:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| DU-01 | CSV file upload | P0 | Support files up to 50MB, validate format |
-| DU-02 | Drag-and-drop interface | P0 | Intuitive upload experience |
-| DU-03 | Data validation | P0 | Check required columns, data types |
-| DU-04 | Manual data entry | P1 | Form-based input for small datasets |
-| DU-05 | Upload history | P1 | Track all uploads with status |
-| DU-06 | Data preview | P1 | Show first 10 rows before processing |
-| DU-07 | Error reporting | P0 | Clear messages for invalid data |
-| DU-08 | Auto-detect format | P2 | Infer date formats, delimiters |
+| ID    | Requirement             | Priority | Acceptance Criteria                       |
+| ----- | ----------------------- | -------- | ----------------------------------------- |
+| DU-01 | CSV file upload         | P0       | Support files up to 50MB, validate format |
+| DU-02 | Drag-and-drop interface | P0       | Intuitive upload experience               |
+| DU-03 | Data validation         | P0       | Check required columns, data types        |
+| DU-04 | Manual data entry       | P1       | Form-based input for small datasets       |
+| DU-05 | Upload history          | P1       | Track all uploads with status             |
+| DU-06 | Data preview            | P1       | Show first 10 rows before processing      |
+| DU-07 | Error reporting         | P0       | Clear messages for invalid data           |
+| DU-08 | Auto-detect format      | P2       | Infer date formats, delimiters            |
 
 **Technical Specifications:**
+
 ```yaml
 Supported Formats:
   - CSV (required)
@@ -335,20 +344,21 @@ Validation Rules:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| AD-01 | KPI summary cards | P0 | Revenue, units, products, avg order |
-| AD-02 | Top selling products | P0 | Bar chart, top 10 products |
-| AD-03 | Low performers | P0 | Identify underperforming products |
-| AD-04 | Price vs volume analysis | P1 | Scatter plot visualization |
-| AD-05 | Revenue breakdown | P1 | Pie/treemap by product category |
-| AD-06 | Time-series trends | P0 | Line chart with date filtering |
-| AD-07 | Interactive filters | P0 | Date range, product, category |
-| AD-08 | Export charts | P2 | PNG, PDF download options |
-| AD-09 | Custom date ranges | P1 | Preset + custom date selection |
-| AD-10 | Comparison mode | P2 | Compare periods (MoM, YoY) |
+| ID    | Requirement              | Priority | Acceptance Criteria                 |
+| ----- | ------------------------ | -------- | ----------------------------------- |
+| AD-01 | KPI summary cards        | P0       | Revenue, units, products, avg order |
+| AD-02 | Top selling products     | P0       | Bar chart, top 10 products          |
+| AD-03 | Low performers           | P0       | Identify underperforming products   |
+| AD-04 | Price vs volume analysis | P1       | Scatter plot visualization          |
+| AD-05 | Revenue breakdown        | P1       | Pie/treemap by product category     |
+| AD-06 | Time-series trends       | P0       | Line chart with date filtering      |
+| AD-07 | Interactive filters      | P0       | Date range, product, category       |
+| AD-08 | Export charts            | P2       | PNG, PDF download options           |
+| AD-09 | Custom date ranges       | P1       | Preset + custom date selection      |
+| AD-10 | Comparison mode          | P2       | Compare periods (MoM, YoY)          |
 
 **Dashboard Layout:**
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  [KPI Cards Row]                                        │
@@ -387,16 +397,16 @@ Validation Rules:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| AI-01 | Performance analysis | P0 | Identify top/bottom performers |
-| AI-02 | Market insights | P0 | Trends, opportunities, threats |
-| AI-03 | Strategic recommendations | P0 | Actionable 30/90/365 day plans |
-| AI-04 | Financial insights | P1 | Revenue optimization, margins |
-| AI-05 | Operational efficiency | P1 | Inventory, process improvements |
-| AI-06 | Executive summary | P0 | One-page key takeaways |
-| AI-07 | Natural language Q&A | P2 | Ask questions about data |
-| AI-08 | Insight explanations | P1 | "Why" behind each recommendation |
+| ID    | Requirement               | Priority | Acceptance Criteria              |
+| ----- | ------------------------- | -------- | -------------------------------- |
+| AI-01 | Performance analysis      | P0       | Identify top/bottom performers   |
+| AI-02 | Market insights           | P0       | Trends, opportunities, threats   |
+| AI-03 | Strategic recommendations | P0       | Actionable 30/90/365 day plans   |
+| AI-04 | Financial insights        | P1       | Revenue optimization, margins    |
+| AI-05 | Operational efficiency    | P1       | Inventory, process improvements  |
+| AI-06 | Executive summary         | P0       | One-page key takeaways           |
+| AI-07 | Natural language Q&A      | P2       | Ask questions about data         |
+| AI-08 | Insight explanations      | P1       | "Why" behind each recommendation |
 
 **AI Insight Categories:**
 
@@ -439,6 +449,7 @@ Executive Summary:
 ```
 
 **AI Model Configuration:**
+
 ```yaml
 Provider: Google Gemini AI
 Model: gemini-pro
@@ -461,18 +472,19 @@ Prompt Engineering:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| FC-01 | 30-day forecast | P0 | Daily predictions with confidence |
-| FC-02 | 90-day forecast | P1 | Weekly aggregations |
-| FC-03 | Confidence intervals | P0 | Show uncertainty ranges |
-| FC-04 | Seasonality detection | P1 | Auto-detect patterns |
-| FC-05 | Trend analysis | P0 | Identify growth/decline |
-| FC-06 | Forecast visualization | P0 | Line chart with actuals + predictions |
-| FC-07 | Forecast accuracy tracking | P2 | Compare predictions vs actuals |
-| FC-08 | What-if scenarios | P3 | Manual adjustments to forecasts |
+| ID    | Requirement                | Priority | Acceptance Criteria                   |
+| ----- | -------------------------- | -------- | ------------------------------------- |
+| FC-01 | 30-day forecast            | P0       | Daily predictions with confidence     |
+| FC-02 | 90-day forecast            | P1       | Weekly aggregations                   |
+| FC-03 | Confidence intervals       | P0       | Show uncertainty ranges               |
+| FC-04 | Seasonality detection      | P1       | Auto-detect patterns                  |
+| FC-05 | Trend analysis             | P0       | Identify growth/decline               |
+| FC-06 | Forecast visualization     | P0       | Line chart with actuals + predictions |
+| FC-07 | Forecast accuracy tracking | P2       | Compare predictions vs actuals        |
+| FC-08 | What-if scenarios          | P3       | Manual adjustments to forecasts       |
 
 **Technical Specifications:**
+
 ```yaml
 Algorithm: Facebook Prophet
 Parameters:
@@ -498,18 +510,19 @@ Output Format:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| AU-01 | Email/password signup | P0 | Secure registration with validation |
-| AU-02 | Login/logout | P0 | Session management |
-| AU-03 | JWT tokens | P0 | Secure, stateless authentication |
-| AU-04 | Password reset | P1 | Email-based recovery |
-| AU-05 | Role-based access | P1 | User, Admin, Viewer roles |
-| AU-06 | Team invitations | P2 | Add team members to account |
-| AU-07 | SSO (SAML/OAuth) | P3 | Enterprise feature |
-| AU-08 | 2FA | P2 | TOTP-based two-factor auth |
+| ID    | Requirement           | Priority | Acceptance Criteria                 |
+| ----- | --------------------- | -------- | ----------------------------------- |
+| AU-01 | Email/password signup | P0       | Secure registration with validation |
+| AU-02 | Login/logout          | P0       | Session management                  |
+| AU-03 | JWT tokens            | P0       | Secure, stateless authentication    |
+| AU-04 | Password reset        | P1       | Email-based recovery                |
+| AU-05 | Role-based access     | P1       | User, Admin, Viewer roles           |
+| AU-06 | Team invitations      | P2       | Add team members to account         |
+| AU-07 | SSO (SAML/OAuth)      | P3       | Enterprise feature                  |
+| AU-08 | 2FA                   | P2       | TOTP-based two-factor auth          |
 
 **Security Requirements:**
+
 ```yaml
 Password Policy:
   - Minimum length: 8 characters
@@ -537,14 +550,14 @@ Rate Limiting:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| TC-01 | Team workspaces | P1 | Shared data & dashboards |
-| TC-02 | Role assignment | P1 | Admin, Editor, Viewer roles |
-| TC-03 | Dashboard sharing | P1 | Share specific reports |
-| TC-04 | Comments & annotations | P2 | Discuss insights on charts |
-| TC-05 | Activity feed | P2 | See team actions |
-| TC-06 | Scheduled reports | P1 | Email reports on schedule |
+| ID    | Requirement            | Priority | Acceptance Criteria         |
+| ----- | ---------------------- | -------- | --------------------------- |
+| TC-01 | Team workspaces        | P1       | Shared data & dashboards    |
+| TC-02 | Role assignment        | P1       | Admin, Editor, Viewer roles |
+| TC-03 | Dashboard sharing      | P1       | Share specific reports      |
+| TC-04 | Comments & annotations | P2       | Discuss insights on charts  |
+| TC-05 | Activity feed          | P2       | See team actions            |
+| TC-06 | Scheduled reports      | P1       | Email reports on schedule   |
 
 ---
 
@@ -554,15 +567,15 @@ Rate Limiting:
 
 **Requirements:**
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| IN-01 | Shopify integration | P1 | Auto-sync orders, products |
-| IN-02 | WooCommerce integration | P1 | Auto-sync sales data |
-| IN-03 | Amazon Seller API | P2 | FBA/FBM sales data |
-| IN-04 | Google Analytics | P2 | Traffic & conversion data |
-| IN-05 | REST API | P1 | Programmatic data access |
-| IN-06 | Webhooks | P2 | Real-time event notifications |
-| IN-07 | Zapier integration | P3 | Connect to 5000+ apps |
+| ID    | Requirement             | Priority | Acceptance Criteria           |
+| ----- | ----------------------- | -------- | ----------------------------- |
+| IN-01 | Shopify integration     | P1       | Auto-sync orders, products    |
+| IN-02 | WooCommerce integration | P1       | Auto-sync sales data          |
+| IN-03 | Amazon Seller API       | P2       | FBA/FBM sales data            |
+| IN-04 | Google Analytics        | P2       | Traffic & conversion data     |
+| IN-05 | REST API                | P1       | Programmatic data access      |
+| IN-06 | Webhooks                | P2       | Real-time event notifications |
+| IN-07 | Zapier integration      | P3       | Connect to 5000+ apps         |
 
 ---
 
@@ -570,57 +583,57 @@ Rate Limiting:
 
 #### 6.3.1 Performance
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Page Load Time | <2 seconds | 95th percentile |
-| API Response Time | <200ms | 95th percentile |
-| Dashboard Render | <1 second | After data load |
-| Upload Processing | <30 seconds | For 10K rows |
-| Concurrent Users | 10,000+ | Without degradation |
+| Metric            | Target      | Measurement         |
+| ----------------- | ----------- | ------------------- |
+| Page Load Time    | <2 seconds  | 95th percentile     |
+| API Response Time | <200ms      | 95th percentile     |
+| Dashboard Render  | <1 second   | After data load     |
+| Upload Processing | <30 seconds | For 10K rows        |
+| Concurrent Users  | 10,000+     | Without degradation |
 
 #### 6.3.2 Reliability
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Uptime | 99.9% | Monthly average |
-| Error Rate | <0.1% | Failed requests / total |
-| Data Durability | 99.999% | No data loss |
-| Backup Frequency | Every 6 hours | Automated snapshots |
-| RTO (Recovery Time) | <1 hour | Time to restore service |
-| RPO (Recovery Point) | <1 hour | Max data loss window |
+| Metric               | Target        | Measurement             |
+| -------------------- | ------------- | ----------------------- |
+| Uptime               | 99.9%         | Monthly average         |
+| Error Rate           | <0.1%         | Failed requests / total |
+| Data Durability      | 99.999%       | No data loss            |
+| Backup Frequency     | Every 6 hours | Automated snapshots     |
+| RTO (Recovery Time)  | <1 hour       | Time to restore service |
+| RPO (Recovery Point) | <1 hour       | Max data loss window    |
 
 #### 6.3.3 Security
 
-| Requirement | Implementation |
-|-------------|----------------|
-| Data Encryption | TLS 1.3 in transit, AES-256 at rest |
-| Authentication | JWT with refresh tokens |
-| Authorization | RBAC with fine-grained permissions |
-| Audit Logging | All actions logged with timestamps |
-| Compliance | GDPR, CCPA ready |
-| Penetration Testing | Quarterly third-party audits |
-| Vulnerability Scanning | Weekly automated scans |
+| Requirement            | Implementation                      |
+| ---------------------- | ----------------------------------- |
+| Data Encryption        | TLS 1.3 in transit, AES-256 at rest |
+| Authentication         | JWT with refresh tokens             |
+| Authorization          | RBAC with fine-grained permissions  |
+| Audit Logging          | All actions logged with timestamps  |
+| Compliance             | GDPR, CCPA ready                    |
+| Penetration Testing    | Quarterly third-party audits        |
+| Vulnerability Scanning | Weekly automated scans              |
 
 #### 6.3.4 Scalability
 
-| Component | Scaling Strategy |
-|-----------|------------------|
-| Frontend | CDN + Static hosting |
-| Backend | Horizontal auto-scaling |
-| Database | Read replicas + sharding |
-| Cache | Redis cluster |
+| Component    | Scaling Strategy             |
+| ------------ | ---------------------------- |
+| Frontend     | CDN + Static hosting         |
+| Backend      | Horizontal auto-scaling      |
+| Database     | Read replicas + sharding     |
+| Cache        | Redis cluster                |
 | File Storage | S3-compatible object storage |
-| AI Service | Separate microservice |
+| AI Service   | Separate microservice        |
 
 #### 6.3.5 Usability
 
-| Metric | Target |
-|--------|--------|
-| Time to First Insight | <5 minutes |
-| Onboarding Completion | >80% |
-| Support Tickets | <5% of users/month |
-| Mobile Usability | 100% responsive |
-| Accessibility | WCAG 2.1 AA |
+| Metric                | Target             |
+| --------------------- | ------------------ |
+| Time to First Insight | <5 minutes         |
+| Onboarding Completion | >80%               |
+| Support Tickets       | <5% of users/month |
+| Mobile Usability      | 100% responsive    |
+| Accessibility         | WCAG 2.1 AA        |
 
 ---
 
@@ -685,6 +698,7 @@ Rate Limiting:
 ### 7.2 Technology Stack
 
 #### Backend
+
 ```yaml
 Runtime: Python 3.11+
 Framework: Flask 2.3+
@@ -706,6 +720,7 @@ Security:
 ```
 
 #### Frontend
+
 ```yaml
 Framework: React 18.3+
 Language: TypeScript 5.6+
@@ -722,6 +737,7 @@ HTTP Client: Fetch API (native)
 ```
 
 #### Infrastructure
+
 ```yaml
 Hosting: Render.com / AWS
 CDN: Cloudflare
@@ -932,38 +948,38 @@ Admin Endpoints:
 
 ### 8.1 Epic: User Onboarding
 
-| ID | Story | Priority | Points |
-|----|-------|----------|--------|
-| US-001 | As a new user, I want to sign up with my email so I can access the platform | P0 | 3 |
-| US-002 | As a new user, I want a guided tour so I understand how to use the platform | P1 | 5 |
-| US-003 | As a user, I want to upload a sample dataset so I can try before using my data | P1 | 3 |
-| US-004 | As a user, I want to verify my email so I can recover my account | P0 | 2 |
+| ID     | Story                                                                          | Priority | Points |
+| ------ | ------------------------------------------------------------------------------ | -------- | ------ |
+| US-001 | As a new user, I want to sign up with my email so I can access the platform    | P0       | 3      |
+| US-002 | As a new user, I want a guided tour so I understand how to use the platform    | P1       | 5      |
+| US-003 | As a user, I want to upload a sample dataset so I can try before using my data | P1       | 3      |
+| US-004 | As a user, I want to verify my email so I can recover my account               | P0       | 2      |
 
 ### 8.2 Epic: Data Management
 
-| ID | Story | Priority | Points |
-|----|-------|----------|--------|
-| US-010 | As a user, I want to upload CSV files so I can analyze my sales data | P0 | 5 |
-| US-011 | As a user, I want to see upload progress so I know when my data is ready | P1 | 3 |
-| US-012 | As a user, I want to view my upload history so I can access past analyses | P1 | 3 |
-| US-013 | As a user, I want to delete old uploads so I can manage my storage | P2 | 2 |
+| ID     | Story                                                                     | Priority | Points |
+| ------ | ------------------------------------------------------------------------- | -------- | ------ |
+| US-010 | As a user, I want to upload CSV files so I can analyze my sales data      | P0       | 5      |
+| US-011 | As a user, I want to see upload progress so I know when my data is ready  | P1       | 3      |
+| US-012 | As a user, I want to view my upload history so I can access past analyses | P1       | 3      |
+| US-013 | As a user, I want to delete old uploads so I can manage my storage        | P2       | 2      |
 
 ### 8.3 Epic: Analytics & Insights
 
-| ID | Story | Priority | Points |
-|----|-------|----------|--------|
-| US-020 | As a user, I want to see my top products so I know what's selling well | P0 | 5 |
-| US-021 | As a user, I want AI recommendations so I know what actions to take | P0 | 8 |
-| US-022 | As a user, I want sales forecasts so I can plan inventory | P1 | 8 |
-| US-023 | As a user, I want to filter by date range so I can analyze specific periods | P1 | 3 |
+| ID     | Story                                                                       | Priority | Points |
+| ------ | --------------------------------------------------------------------------- | -------- | ------ |
+| US-020 | As a user, I want to see my top products so I know what's selling well      | P0       | 5      |
+| US-021 | As a user, I want AI recommendations so I know what actions to take         | P0       | 8      |
+| US-022 | As a user, I want sales forecasts so I can plan inventory                   | P1       | 8      |
+| US-023 | As a user, I want to filter by date range so I can analyze specific periods | P1       | 3      |
 
 ### 8.4 Epic: Reporting & Export
 
-| ID | Story | Priority | Points |
-|----|-------|----------|--------|
-| US-030 | As a user, I want to export charts as images so I can use them in presentations | P1 | 3 |
-| US-031 | As a user, I want to export reports as PDF so I can share with stakeholders | P1 | 5 |
-| US-032 | As a user, I want scheduled email reports so my team stays informed | P2 | 5 |
+| ID     | Story                                                                           | Priority | Points |
+| ------ | ------------------------------------------------------------------------------- | -------- | ------ |
+| US-030 | As a user, I want to export charts as images so I can use them in presentations | P1       | 3      |
+| US-031 | As a user, I want to export reports as PDF so I can share with stakeholders     | P1       | 5      |
+| US-032 | As a user, I want scheduled email reports so my team stays informed             | P2       | 5      |
 
 ---
 
@@ -1014,7 +1030,7 @@ Reliability:
   - Failed uploads: <1%
 
 Quality:
-  - Test coverage: >80%
+  - Test coverage: >80
   - Critical bugs: 0
   - Security vulnerabilities: 0 high/critical
 ```
@@ -1072,6 +1088,7 @@ CES (Customer Effort Score):
 ### 10.2 Sprint Planning (Next 4 Weeks)
 
 #### Sprint 1: Security Foundation
+
 - [ ] Implement JWT authentication
 - [ ] Add rate limiting
 - [ ] Security headers (Helmet)
@@ -1079,6 +1096,7 @@ CES (Customer Effort Score):
 - [ ] Environment variable validation
 
 #### Sprint 2: Architecture Refactor
+
 - [ ] Split app.py into blueprints
 - [ ] Create service layer
 - [ ] Add repository pattern
@@ -1086,6 +1104,7 @@ CES (Customer Effort Score):
 - [ ] Add request logging
 
 #### Sprint 3: Testing & Quality
+
 - [ ] Backend unit tests (pytest)
 - [ ] API integration tests
 - [ ] Frontend component tests
@@ -1093,6 +1112,7 @@ CES (Customer Effort Score):
 - [ ] CI/CD pipeline
 
 #### Sprint 4: Documentation & Deployment
+
 - [ ] API documentation (Swagger)
 - [ ] Developer documentation
 - [ ] User guides
@@ -1105,32 +1125,32 @@ CES (Customer Effort Score):
 
 ### 11.1 Technical Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Data breach | Low | Critical | Encryption, audits, compliance |
-| Service outage | Medium | High | Redundancy, monitoring, runbooks |
-| Performance degradation | Medium | High | Load testing, auto-scaling |
-| AI model errors | Medium | Medium | Human review, confidence scores |
-| Data quality issues | High | Medium | Validation, error reporting |
+| Risk                    | Probability | Impact   | Mitigation                       |
+| ----------------------- | ----------- | -------- | -------------------------------- |
+| Data breach             | Low         | Critical | Encryption, audits, compliance   |
+| Service outage          | Medium      | High     | Redundancy, monitoring, runbooks |
+| Performance degradation | Medium      | High     | Load testing, auto-scaling       |
+| AI model errors         | Medium      | Medium   | Human review, confidence scores  |
+| Data quality issues     | High        | Medium   | Validation, error reporting      |
 
 ### 11.2 Business Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Low user adoption | Medium | High | User research, iterative design |
-| High churn rate | Medium | High | Engagement features, support |
-| Competitive pressure | High | Medium | Differentiation, speed |
-| Pricing pressure | Medium | Medium | Value-based pricing, tiers |
-| Regulatory changes | Low | High | Compliance monitoring, legal review |
+| Risk                 | Probability | Impact | Mitigation                          |
+| -------------------- | ----------- | ------ | ----------------------------------- |
+| Low user adoption    | Medium      | High   | User research, iterative design     |
+| High churn rate      | Medium      | High   | Engagement features, support        |
+| Competitive pressure | High        | Medium | Differentiation, speed              |
+| Pricing pressure     | Medium      | Medium | Value-based pricing, tiers          |
+| Regulatory changes   | Low         | High   | Compliance monitoring, legal review |
 
 ### 11.3 Operational Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Key person dependency | Medium | High | Documentation, cross-training |
-| Vendor lock-in | Medium | Medium | Abstraction layers, multi-cloud |
-| Scaling challenges | Medium | High | Architecture review, load testing |
-| Technical debt | High | Medium | Regular refactoring, code review |
+| Risk                  | Probability | Impact | Mitigation                        |
+| --------------------- | ----------- | ------ | --------------------------------- |
+| Key person dependency | Medium      | High   | Documentation, cross-training     |
+| Vendor lock-in        | Medium      | Medium | Abstraction layers, multi-cloud   |
+| Scaling challenges    | Medium      | High   | Architecture review, load testing |
+| Technical debt        | High        | Medium | Regular refactoring, code review  |
 
 ---
 
@@ -1138,17 +1158,17 @@ CES (Customer Effort Score):
 
 ### 12.1 Glossary
 
-| Term | Definition |
-|------|------------|
-| **KPI** | Key Performance Indicator |
+| Term        | Definition                                |
+| ----------- | ----------------------------------------- |
+| **KPI**     | Key Performance Indicator                 |
 | **DAU/MAU** | Daily Active Users / Monthly Active Users |
-| **NPS** | Net Promoter Score |
-| **CAC** | Customer Acquisition Cost |
-| **LTV** | Lifetime Value |
-| **RBAC** | Role-Based Access Control |
-| **JWT** | JSON Web Token |
-| **RTO** | Recovery Time Objective |
-| **RPO** | Recovery Point Objective |
+| **NPS**     | Net Promoter Score                        |
+| **CAC**     | Customer Acquisition Cost                 |
+| **LTV**     | Lifetime Value                            |
+| **RBAC**    | Role-Based Access Control                 |
+| **JWT**     | JSON Web Token                            |
+| **RTO**     | Recovery Time Objective                   |
+| **RPO**     | Recovery Point Objective                  |
 
 ### 12.2 References
 
@@ -1160,10 +1180,10 @@ CES (Customer Effort Score):
 
 ### 12.3 Document History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-01-01 | Product Team | Initial draft |
-| 2.0.0 | 2026-02-19 | Product Team | Major revision with v2.0 features |
+| Version | Date       | Author       | Changes                           |
+| ------- | ---------- | ------------ | --------------------------------- |
+| 1.0.0   | 2026-01-01 | Product Team | Initial draft                     |
+| 2.0.0   | 2026-02-19 | Product Team | Major revision with v2.0 features |
 
 ---
 
@@ -1179,13 +1199,13 @@ CES (Customer Effort Score):
 
 **Document Approval:**
 
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Product Manager | | | |
-| Engineering Lead | | | |
-| Design Lead | | | |
-| Security Lead | | | |
+| Role             | Name | Signature | Date |
+| ---------------- | ---- | --------- | ---- |
+| Product Manager  |      |           |      |
+| Engineering Lead |      |           |      |
+| Design Lead      |      |           |      |
+| Security Lead    |      |           |      |
 
 ---
 
-*This PRD is a living document and will be updated as the product evolves.*
+_This PRD is a living document and will be updated as the product evolves._
