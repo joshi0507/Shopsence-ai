@@ -12,6 +12,7 @@ import {
   DollarSign,
   Target,
   Lightbulb,
+  BarChart,
 } from "lucide-react";
 import Plot from "react-plotly.js";
 import { api } from "../lib/api";
@@ -38,14 +39,14 @@ const AnalysisReport = ({
         let targetId = reportId;
 
         if (latest) {
-          const histRes = await api.getUploadHistory();
+          const histRes = await api.getUploads();
 
           if (
             histRes.success &&
-            histRes.uploads &&
-            histRes.uploads.length > 0
+            histRes.data &&
+            histRes.data.length > 0
           ) {
-            const completed = histRes.uploads.find(
+            const completed = histRes.data.find(
               (u: any) => u.status === "completed",
             );
             if (completed) {
@@ -72,20 +73,29 @@ const AnalysisReport = ({
           return;
         }
 
-        const res = await api.getUploadDetails(targetId);
+        const res = await api.getUpload(targetId);
 
-        if (res.success && res.upload) {
-          if (!res.upload.results) {
+        if (res.success && res.data) {
+          // Check if we have analysis data (either in results or analysis field)
+          const analysisData = res.data.results || (res.data as any).analysis;
+          
+          if (!analysisData) {
             setErrorStatus(
               "Analysis results not available. The upload may still be processing.",
             );
             setLoading(false);
             return;
           }
-
-          setData(res.upload);
+          
+          // Store the data with analysis in results field for compatibility
+          const dataWithResults = {
+            ...res.data,
+            results: analysisData
+          };
+          
+          setData(dataWithResults);
         } else {
-          setErrorStatus(res.error || "Failed to load report details.");
+          setErrorStatus(res.error?.message || "Failed to load report details.");
         }
       } catch (error: any) {
         setErrorStatus(
@@ -281,6 +291,36 @@ const AnalysisReport = ({
         </div>
       </div>
 
+      {/* Basic Analysis Summary */}
+      {data.results && (
+        <div className="glass-card rounded-3xl p-8 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl bg-blue-500/20">
+              <BarChart className="w-6 h-6 text-blue-400" />
+            </div>
+            <h3 className="text-xl font-bold text-white">Analysis Summary</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-cyan-400">{data.results.products || 'N/A'}</div>
+              <div className="text-sm text-gray-400">Products</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">{data.results.rows_processed || 'N/A'}</div>
+              <div className="text-sm text-gray-400">Rows Processed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-400">{data.results.date_range?.start ? new Date(data.results.date_range.start).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-sm text-gray-400">Start Date</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-400">{data.results.date_range?.end ? new Date(data.results.date_range.end).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-sm text-gray-400">End Date</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Executive Summary */}
       {executiveSummary.summary && (
         <div className="glass-card rounded-3xl p-8 mb-8">
@@ -397,6 +437,20 @@ const AnalysisReport = ({
             note={data.results?.low_cost_high_sales?.note}
             title="Low Cost but Most Sold Products"
           />
+        )}
+        
+        {/* No Charts Available Message */}
+        {!Object.values(charts).some(chart => chart !== null) && (
+          <div className="glass-card rounded-3xl p-8 mb-8 text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <BarChart className="w-6 h-6 text-gray-400" />
+              <h3 className="text-xl font-bold text-white">Charts Not Available</h3>
+            </div>
+            <p className="text-gray-400 text-base">
+              Detailed charts and visualizations will be available once the advanced analytics processing is complete.
+              The basic analysis summary above shows your key metrics.
+            </p>
+          </div>
         )}
       </div>
 

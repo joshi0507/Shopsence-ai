@@ -88,7 +88,7 @@ def register():
         email = data.get('email', '').strip()
         password = data.get('password', '')
         company_name = data.get('company_name', '').strip()
-        
+        print(username)
         # Validation
         errors = []
         
@@ -270,8 +270,10 @@ def get_current_user():
         JSON: User profile data
     """
     try:
+        user_id = g.current_user.get('user_id')
+        
         user_model = get_user_model()
-        user = user_model.find_by_id(g.current_user['user_id'])
+        user = user_model.find_by_id(user_id)
         
         if not user:
             return jsonify({

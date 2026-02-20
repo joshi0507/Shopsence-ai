@@ -31,7 +31,7 @@ function App() {
     try {
       const res = await api.getCurrentUser();
       if (res && res.success) {
-        setUser(res.user);
+        setUser(res.data);
       }
     } catch (e: any) {
       // Silent fail for auth errors - expected when not logged in
@@ -168,7 +168,7 @@ function App() {
           <Sentiment />
         </ScrollReveal>
 
-        <ScrollReveal scale={0.95}>
+        <ScrollReveal>
           <CTA onOpenAuth={openAuth} />
         </ScrollReveal>
       </main>

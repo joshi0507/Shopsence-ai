@@ -110,7 +110,10 @@ class UploadSession:
         Returns:
             dict or None: Session document or None if not found.
         """
-        return self.collection.find_one({'upload_id': upload_id})
+        session = self.collection.find_one({'upload_id': upload_id})
+        if session:
+            return self._sanitize_upload_session(session)
+        return None
     
     def find_by_user(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         """
@@ -127,7 +130,24 @@ class UploadSession:
             {'user_id': ObjectId(user_id)}
         ).sort('created_at', -1).limit(limit)
         
-        return list(cursor)
+        # Sanitize all documents to convert ObjectIds to strings
+        return [self._sanitize_upload_session(session) for session in cursor]
+    
+    def _sanitize_upload_session(self, session: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Convert ObjectId to string for JSON serialization.
+        
+        Args:
+            session: Upload session document.
+        
+        Returns:
+            dict: Sanitized session document.
+        """
+        if '_id' in session and session['_id'] is not None:
+            session['_id'] = str(session['_id'])
+        if 'user_id' in session and session['user_id'] is not None:
+            session['user_id'] = str(session['user_id'])
+        return session
     
     def update_status(
         self,

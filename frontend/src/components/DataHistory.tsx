@@ -17,9 +17,9 @@ const DataHistory = ({ onViewReport }: DataHistoryProps) => {
 
   const loadHistory = async () => {
     try {
-      const res = await api.getUploadHistory();
+      const res = await api.getUploads();
       if (res.success) {
-        setHistory(res.uploads);
+        setHistory(res.data);
       }
     } catch (error) {
       console.error("Failed to load history", error);

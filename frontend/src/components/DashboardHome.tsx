@@ -29,10 +29,10 @@ const DashboardHome = ({
   useEffect(() => {
     const fetchRecent = async () => {
       try {
-        const res = await api.getUploadHistory();
-        if (res.success && res.uploads) {
+        const res = await api.getUploads();
+        if (res.success && res.data) {
           // Get top 3 most recent
-          setRecentFiles(res.uploads.slice(0, 3));
+          setRecentFiles(res.data.slice(0, 3));
         }
       } catch (e) {
         console.error(e);

@@ -85,18 +85,15 @@ const DataUpload = ({ onViewReport }: DataUploadProps) => {
   };
 
   const uploadFile = async (fileId: string, file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
       // Optimistic UI updates
       setUploadedFiles((prev) =>
         prev.map((u) => (u.id === fileId ? { ...u, progress: 30 } : u)),
       );
 
-      const res = await api.upload(formData);
+      const res = await api.upload(file);
 
-      if (res.error) throw new Error(res.error);
+      if (res.error) throw new Error(res.error.message);
 
       // Handle successful upload
       setUploadedFiles((prev) =>
@@ -106,7 +103,7 @@ const DataUpload = ({ onViewReport }: DataUploadProps) => {
                 ...u,
                 status: "success",
                 progress: 100,
-                backendUploadId: res.upload_id, // Store the real ID
+                backendUploadId: res.data.upload_id, // Store the real ID
               }
             : u,
         ),

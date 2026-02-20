@@ -185,6 +185,12 @@ def upload_file():
         analysis = analytics_service.analyze_product_performance(product_df)
         recommendations = analytics_service.generate_recommendations(analysis)
         
+        # Generate chart data
+        chart_data = analytics_service._generate_chart_data(product_df)
+        
+        # Merge analysis with chart data
+        analysis_with_charts = {**analysis, **chart_data}
+        
         return jsonify({
             'success': True,
             'message': 'File uploaded and processed successfully',
@@ -193,7 +199,7 @@ def upload_file():
                 'filename': upload_session['filename'],
                 'rows_processed': inserted_count,
                 'products_count': df['product_name'].nunique(),
-                'analysis': analysis,
+                'analysis': analysis_with_charts,
                 'recommendations': recommendations
             }
         }), 201

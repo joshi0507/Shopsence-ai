@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+import json
 
 
 class AnalyticsService:
@@ -195,4 +196,48 @@ class AnalyticsService:
             'bottom_performers': {},
             'price_segmentation': {},
             'performance_distribution': {}
+        }
+    
+    def _generate_chart_data(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Generate basic chart data for frontend."""
+        if df.empty:
+            return {}
+        
+        # Top 10 products by units sold
+        top_products = df.nlargest(10, 'units_sold')
+        
+        # Bottom 10 products by units sold
+        bottom_products = df.nsmallest(10, 'units_sold')
+        
+        # Create chart data for Plotly
+        def create_bar_chart(data, x_col, y_col, title):
+            return {
+                'data': [{
+                    'x': data[x_col].tolist(),
+                    'y': data[y_col].tolist(),
+                    'type': 'bar',
+                    'marker': {
+                        'color': 'rgba(6, 182, 212, 0.8)',
+                        'line': {
+                            'color': 'rgba(6, 182, 212, 1)',
+                            'width': 1
+                        }
+                    }
+                }],
+                'layout': {
+                    'title': title,
+                    'xaxis': {'title': x_col.replace('_', ' ').title()},
+                    'yaxis': {'title': y_col.replace('_', ' ').title()}
+                }
+            }
+        
+        return {
+            'most_selling': {
+                'graph': create_bar_chart(top_products, 'product_name', 'units_sold', 'Most Selling Products'),
+                'note': f'Top 10 products by units sold'
+            },
+            'low_selling': {
+                'graph': create_bar_chart(bottom_products, 'product_name', 'units_sold', 'Low Selling Products'),
+                'note': f'Bottom 10 products by units sold'
+            }
         }

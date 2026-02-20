@@ -67,7 +67,7 @@ class User:
         user = {
             'username': username.lower().strip(),
             'email': email.lower().strip(),
-            'password_hash': generate_password_hash(password, method='bcrypt'),
+            'password_hash': generate_password_hash(password),
             'role': role,
             'company_name': company_name,
             'created_at': datetime.utcnow(),
@@ -211,7 +211,7 @@ class User:
             {'_id': ObjectId(user_id)},
             {
                 '$set': {
-                    'password_hash': generate_password_hash(new_password, method='bcrypt'),
+                    'password_hash': generate_password_hash(new_password),
                     'updated_at': datetime.utcnow()
                 }
             }
@@ -266,4 +266,7 @@ class User:
             dict: Sanitized user document.
         """
         user.pop('password_hash', None)
+        # Convert ObjectId to string for JSON serialization
+        if '_id' in user and user['_id'] is not None:
+            user['_id'] = str(user['_id'])
         return user
