@@ -1,0 +1,36 @@
+# ShopSense AI - Render.com Deployment Configuration
+services:
+  # Backend API Service
+  - type: web
+    name: shopsense-api
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 --threads 2 --worker-class eventlet --timeout 120 app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: false
+      - key: PORT
+        value: 10000
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+    disk:
+      name: shopsense-uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+    healthCheckPath: /api/health
+    numInstances: 1
+
+# Database (MongoDB Atlas - managed externally)
+# Add connection string to environment variables

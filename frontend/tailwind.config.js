@@ -1,0 +1,166 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+	darkMode: ['class'],
+	content: [
+		'./pages/**/*.{ts,tsx}',
+		'./components/**/*.{ts,tsx}',
+		'./app/**/*.{ts,tsx}',
+		'./src/**/*.{ts,tsx}',
+	],
+	theme: {
+		container: {
+			center: true,
+			padding: '2rem',
+			screens: {
+				'2xl': '1400px',
+			},
+		},
+		extend: {
+			colors: {
+				void: '#030014',
+				deep: '#0a0a1a',
+				cyan: {
+					DEFAULT: '#00F0FF',
+					50: '#e6fcff',
+					100: '#ccf7ff',
+					200: '#99efff',
+					300: '#66e7ff',
+					400: '#33dfff',
+					500: '#00F0FF',
+					600: '#00c0cc',
+					700: '#009099',
+					800: '#006066',
+					900: '#003033',
+				},
+				purple: {
+					DEFAULT: '#7000FF',
+					50: '#f2e6ff',
+					100: '#e6ccff',
+					200: '#cc99ff',
+					300: '#b366ff',
+					400: '#9933ff',
+					500: '#7000FF',
+					600: '#5a00cc',
+					700: '#430099',
+					800: '#2c0066',
+					900: '#160033',
+				},
+				blue: {
+					DEFAULT: '#0066FF',
+					50: '#e6f2ff',
+					100: '#cce6ff',
+					200: '#99ccff',
+					300: '#66b3ff',
+					400: '#3399ff',
+					500: '#0066FF',
+					600: '#0052cc',
+					700: '#003d99',
+					800: '#002966',
+					900: '#001433',
+				},
+				pink: {
+					DEFAULT: '#FF00AA',
+					50: '#ffe6f2',
+					100: '#ffcce6',
+					200: '#ff99cc',
+					300: '#ff66b3',
+					400: '#ff3399',
+					500: '#FF00AA',
+					600: '#cc0088',
+					700: '#990066',
+					800: '#660044',
+					900: '#330022',
+				},
+				border: 'hsl(var(--border))',
+				input: 'hsl(var(--input))',
+				ring: 'hsl(var(--ring))',
+				background: 'hsl(var(--background))',
+				foreground: 'hsl(var(--foreground))',
+				primary: {
+					DEFAULT: '#00F0FF',
+					foreground: 'hsl(var(--primary-foreground))',
+				},
+				secondary: {
+					DEFAULT: '#7000FF',
+					foreground: 'hsl(var(--secondary-foreground))',
+				},
+				accent: {
+					DEFAULT: '#FF00AA',
+					foreground: 'hsl(var(--accent-foreground))',
+				},
+				destructive: {
+					DEFAULT: 'hsl(var(--destructive))',
+					foreground: 'hsl(var(--destructive-foreground))',
+				},
+				muted: {
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))',
+				},
+				popover: {
+					DEFAULT: 'hsl(var(--popover))',
+					foreground: 'hsl(var(--popover-foreground))',
+				},
+				card: {
+					DEFAULT: 'hsl(var(--card))',
+					foreground: 'hsl(var(--card-foreground))',
+				},
+			},
+			fontFamily: {
+				sans: ['DM Sans', 'sans-serif'],
+				heading: ['Syne', 'sans-serif'],
+				mono: ['JetBrains Mono', 'monospace'],
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)',
+			},
+			keyframes: {
+				'accordion-down': {
+					from: { height: 0 },
+					to: { height: 'var(--radix-accordion-content-height)' },
+				},
+				'accordion-up': {
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: 0 },
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-20px)' },
+				},
+				'pulse-glow': {
+					'0%, 100%': { boxShadow: '0 0 20px rgba(0, 240, 255, 0.4)' },
+					'50%': { boxShadow: '0 0 40px rgba(0, 240, 255, 0.8)' },
+				},
+				'gradient-shift': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+				},
+				'shimmer': {
+					'0%': { transform: 'translateX(-100%)' },
+					'100%': { transform: 'translateX(100%)' },
+				},
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+				'gradient-shift': 'gradient-shift 8s ease infinite',
+				'shimmer': 'shimmer 2s ease-in-out infinite',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'mesh': 'radial-gradient(at 40% 20%, hsla(260, 100%, 80%, 0.3) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(190, 100%, 70%, 0.3) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(280, 100%, 70%, 0.3) 0px, transparent 50%), radial-gradient(at 80% 50%, hsla(180, 100%, 80%, 0.2) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(240, 100%, 80%, 0.2) 0px, transparent 50%)',
+			},
+			boxShadow: {
+				'glow-cyan': '0 0 40px rgba(0, 240, 255, 0.4)',
+				'glow-purple': '0 0 40px rgba(112, 0, 255, 0.4)',
+				'glow-pink': '0 0 40px rgba(255, 0, 170, 0.4)',
+				'glow-blue': '0 0 40px rgba(0, 102, 255, 0.4)',
+			},
+		},
+	},
+	plugins: [require('tailwindcss-animate')],
+}
