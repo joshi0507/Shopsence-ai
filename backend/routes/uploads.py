@@ -162,22 +162,7 @@ def upload_file():
             data=data_records
         )
         
-        # Update session
-        upload_model.update_row_count(upload_session['upload_id'], len(df))
-        upload_model.update_status(
-            upload_session['upload_id'],
-            UploadSession.STATUS_COMPLETED,
-            results={
-                'rows_processed': inserted_count,
-                'products': df['product_name'].nunique(),
-                'date_range': {
-                    'start': df['date'].min(),
-                    'end': df['date'].max()
-                }
-            }
-        )
-        
-        # Generate initial analytics
+        # Generate initial analytics and chart data
         analytics_service = AnalyticsService()
         product_df = sales_model.get_product_summary(g.current_user['user_id'], upload_session['upload_id'])
         daily_df = sales_model.get_daily_sales(g.current_user['user_id'], upload_session['upload_id'])
@@ -190,6 +175,22 @@ def upload_file():
         
         # Merge analysis with chart data
         analysis_with_charts = {**analysis, **chart_data}
+        
+        # Update session with chart data
+        upload_model.update_row_count(upload_session['upload_id'], len(df))
+        upload_model.update_status(
+            upload_session['upload_id'],
+            UploadSession.STATUS_COMPLETED,
+            results={
+                'rows_processed': inserted_count,
+                'products': df['product_name'].nunique(),
+                'date_range': {
+                    'start': df['date'].min(),
+                    'end': df['date'].max()
+                },
+                **chart_data  # Include chart data in results
+            }
+        )
         
         return jsonify({
             'success': True,

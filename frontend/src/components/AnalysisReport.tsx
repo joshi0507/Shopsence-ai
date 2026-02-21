@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -17,6 +17,21 @@ import {
 import Plot from "react-plotly.js";
 import { api } from "../lib/api";
 
+// Parse chart data function - moved outside component to prevent hook issues
+const parseGraph = (graphData: any) => {
+  try {
+    if (!graphData) return null;
+    // If it's already an object, use it directly; if it's a string, parse it
+    if (typeof graphData === 'string') {
+      return JSON.parse(graphData);
+    }
+    return graphData;
+  } catch (e) {
+    console.error("Failed to parse graph:", e);
+    return null;
+  }
+};
+
 const AnalysisReport = ({
   reportId,
   onBack,
@@ -29,6 +44,27 @@ const AnalysisReport = ({
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+
+  // Memoize charts to prevent re-renders - MUST be called before any early returns
+  const charts = useMemo(() => {
+    if (!data?.results) return {
+      mostSelling: null,
+      lowSelling: null,
+      highCost: null,
+      lowCost: null,
+      prediction: null,
+      productReport: null,
+    };
+    
+    return {
+      mostSelling: parseGraph(data.results.most_selling?.graph),
+      lowSelling: parseGraph(data.results.low_selling?.graph),
+      highCost: parseGraph(data.results.high_cost_high_sales?.graph),
+      lowCost: parseGraph(data.results.low_cost_high_sales?.graph),
+      prediction: parseGraph(data.results.sales_prediction?.graph),
+      productReport: parseGraph(data.results.product_report?.graph),
+    };
+  }, [data?.results]);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -138,26 +174,6 @@ const AnalysisReport = ({
     );
   }
 
-  // Parse chart data
-  const parseGraph = (graphString: string) => {
-    try {
-      if (!graphString) return null;
-      return JSON.parse(graphString);
-    } catch (e) {
-      console.error("Failed to parse graph:", e);
-      return null;
-    }
-  };
-
-  const charts = {
-    mostSelling: parseGraph(data.results?.most_selling?.graph),
-    lowSelling: parseGraph(data.results?.low_selling?.graph),
-    highCost: parseGraph(data.results?.high_cost_high_sales?.graph),
-    lowCost: parseGraph(data.results?.low_cost_high_sales?.graph),
-    prediction: parseGraph(data.results?.sales_prediction?.graph),
-    productReport: parseGraph(data.results?.product_report?.graph),
-  };
-
   // Extract AI insights
   const aiInsights =
     data.results?.ai_insights?.ai_insights || data.results?.ai_insights || {};
@@ -167,7 +183,7 @@ const AnalysisReport = ({
   const financialInsights = aiInsights.financial_insights || {};
   const executiveSummary = aiInsights.executive_summary || {};
 
-  const PlotlyChart = ({ plotData, note, title }: any) => {
+  const PlotlyChart = memo(({ plotData, note, title }: any) => {
     if (!plotData || !plotData.data) {
       return null; // Don't render empty charts
     }
@@ -178,30 +194,28 @@ const AnalysisReport = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="glass rounded-3xl p-6 flex flex-col"
+        whileHover={{ scale: 1.02 }} // Add subtle hover effect instead of triggering re-render
       >
         <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
-        <div className="min-h-[350px] w-full">
+        <div className="min-h-[350px] w-full" style={{ height: '350px' }}>
           <Plot
             data={plotData.data}
             layout={{
               ...plotData.layout,
               autosize: true,
+              width: undefined, // Let Plotly handle width
+              height: 300, // Set explicit height
               paper_bgcolor: "rgba(0,0,0,0)",
               plot_bgcolor: "rgba(15,15,25,0.5)",
               font: { color: "#9ca3af", size: 11 },
               margin: { t: 30, r: 30, b: 70, l: 50 },
-              showlegend: true,
-              legend: {
-                font: { color: "#e5e7eb", size: 10 },
-                bgcolor: "rgba(0,0,0,0.5)",
-                bordercolor: "rgba(255,255,255,0.1)",
-                borderwidth: 1,
-              },
+              showlegend: false, // Hide legend for single trace
               xaxis: {
                 ...plotData.layout?.xaxis,
                 gridcolor: "rgba(255,255,255,0.05)",
                 tickfont: { color: "#9ca3af", size: 9 },
                 color: "#9ca3af",
+                tickangle: -45, // Angle labels for better fit
               },
               yaxis: {
                 ...plotData.layout?.yaxis,
@@ -209,20 +223,13 @@ const AnalysisReport = ({
                 tickfont: { color: "#9ca3af", size: 9 },
                 color: "#9ca3af",
               },
-              yaxis2: plotData.layout?.yaxis2
-                ? {
-                    ...plotData.layout.yaxis2,
-                    gridcolor: "rgba(255,255,255,0.05)",
-                    tickfont: { color: "#9ca3af", size: 9 },
-                    color: "#9ca3af",
-                  }
-                : undefined,
             }}
             config={{
               displayModeBar: false,
               responsive: true,
+              staticPlot: false, // Allow interactions
             }}
-            style={{ width: "100%", height: "350px" }}
+            style={{ width: "100%", height: "300px" }}
             useResizeHandler={true}
           />
         </div>
@@ -233,7 +240,14 @@ const AnalysisReport = ({
         )}
       </motion.div>
     );
-  };
+  }, (prevProps, nextProps) => {
+    // Custom comparison function to prevent unnecessary re-renders
+    return (
+      prevProps.plotData === nextProps.plotData &&
+      prevProps.note === nextProps.note &&
+      prevProps.title === nextProps.title
+    );
+  });
 
   const InsightCard = ({ icon: Icon, title, items, color }: any) => {
     if (!items || items.length === 0) return null;
@@ -310,11 +324,11 @@ const AnalysisReport = ({
               <div className="text-sm text-gray-400">Rows Processed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">{data.results.date_range?.start ? new Date(data.results.date_range.start).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-2xl font-bold text-purple-400">{data.results.date_range?.start ? new Date(data.results.date_range.start).toLocaleDateString() || data.results.date_range.start : 'N/A'}</div>
               <div className="text-sm text-gray-400">Start Date</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">{data.results.date_range?.end ? new Date(data.results.date_range.end).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-2xl font-bold text-orange-400">{data.results.date_range?.end ? new Date(data.results.date_range.end).toLocaleDateString() || data.results.date_range.end : 'N/A'}</div>
               <div className="text-sm text-gray-400">End Date</div>
             </div>
           </div>
