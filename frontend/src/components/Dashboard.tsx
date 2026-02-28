@@ -8,6 +8,8 @@ import AnalysisReport from "./AnalysisReport";
 import Footer from "./Footer";
 import WelcomeCelebration from "./WelcomeCelebration";
 import GuidedTour from "./GuidedTour";
+import Customers from "./Customers";
+import Tips from "./Tips";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -57,6 +59,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     analyses: 0,
     insights: 0,
   });
+  const [latestUploadId, setLatestUploadId] = useState<string | undefined>(
+    undefined,
+  );
 
   // Check if this is first login and show welcome
   useEffect(() => {
@@ -83,11 +88,14 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         if (res.success && res.data) {
           const completed = res.data.filter(
             (f: any) => f.status === "completed",
-          ).length;
+          );
+          if (completed.length > 0) {
+            setLatestUploadId(completed[0].upload_id);
+          }
           setUserProgress({
             uploads: res.data.length,
-            analyses: completed,
-            insights: completed * 3, // Estimate insights per analysis
+            analyses: completed.length,
+            insights: completed.length * 3, // Estimate insights per analysis
           });
         }
       } catch (e) {
@@ -199,6 +207,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             latest={true}
           />
         );
+      case "customers":
+        return <Customers user={user} uploadId={latestUploadId} />;
+      case "tips":
+        return <Tips uploadId={latestUploadId} />;
       case "account":
         return <AccountSettings user={user} />;
       case "dashboard":
@@ -210,6 +222,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             user={user}
             onNavigate={handleNavigate}
             onViewReport={handleViewReport}
+            uploadId={latestUploadId}
           />
         );
     }
@@ -275,11 +288,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       {/* Main Content Area - Adjusts for sidebar */}
       <main
         className={`flex-1 min-h-screen relative flex flex-col transition-all duration-300 ${
-          isMobileMenuOpen ? 'ml-0 md:ml-64' : 'ml-0'
-        } ${
-          !isMobileMenuOpen && isSidebarCollapsed ? 'md:ml-20' : ''
-        } ${
-          !isMobileMenuOpen && !isSidebarCollapsed ? 'md:ml-64' : ''
+          isMobileMenuOpen ? "ml-0 md:ml-64" : "ml-0"
+        } ${!isMobileMenuOpen && isSidebarCollapsed ? "md:ml-20" : ""} ${
+          !isMobileMenuOpen && !isSidebarCollapsed ? "md:ml-64" : ""
         }`}
       >
         {/* Mobile Header */}

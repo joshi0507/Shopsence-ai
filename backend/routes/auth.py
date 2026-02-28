@@ -455,3 +455,36 @@ def change_password():
             'success': False,
             'error': {'code': 'INTERNAL_ERROR', 'message': 'Failed to change password'}
         }), 500
+
+
+@auth_bp.route('/me', methods=['DELETE'])
+@jwt_required
+def delete_account():
+    """
+    Permanently delete the current user account.
+    """
+    try:
+        user_id = g.current_user['user_id']
+        user_model = get_user_model()
+        
+        # In a real app, you might want to also delete their data collections here
+        # For now, we'll just delete the user record
+        success = user_model.delete(user_id)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': {'code': 'NOT_FOUND', 'message': 'User not found'}
+            }), 404
+            
+        return jsonify({
+            'success': True,
+            'message': 'Account deleted successfully'
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Delete account error: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': {'code': 'INTERNAL_ERROR', 'message': 'Failed to delete account'}
+        }), 500

@@ -1,7 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, Clock, Star, ChevronRight } from "lucide-react";
-import { Persona } from "../lib/api";
+import {
+  User,
+  ShoppingBag,
+  Clock,
+  Star,
+  ChevronRight,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { api, Persona } from "../lib/api";
 
 interface PersonasProps {
   uploadId?: string;
@@ -27,6 +35,25 @@ const PersonaCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+
+  // Map API behavior to UI behaviors if not already present
+  const displayBehaviors = persona.behaviors || [
+    {
+      icon: <ShoppingBag size={14} />,
+      label: "Avg. Order",
+      value: `$${persona.behavior.avg_order_value.toFixed(2)}`,
+    },
+    {
+      icon: <Clock size={14} />,
+      label: "Purchase Freq.",
+      value: persona.behavior.purchase_frequency,
+    },
+    {
+      icon: <Star size={14} />,
+      label: "RFM Score",
+      value: persona.behavior.avg_rfm_score.toString(),
+    },
+  ];
 
   return (
     <motion.div
@@ -96,7 +123,7 @@ const PersonaCard = ({
               transition={{ duration: 0.3 }}
               className="space-y-2"
             >
-              {persona.behaviors.map((behavior, i) => (
+              {displayBehaviors.map((behavior, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between text-sm"
@@ -283,10 +310,37 @@ const DEMO_PERSONAS: ExtendedPersona[] = [
 ];
 
 const Personas = ({ uploadId }: PersonasProps) => {
-  // On the landing page (no uploadId and no auth), show demo data
-  const [personas] = useState<ExtendedPersona[]>(DEMO_PERSONAS);
+  const [personas, setPersonas] = useState<ExtendedPersona[]>(DEMO_PERSONAS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    const fetchPersonas = async () => {
+      if (!uploadId) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.getPersonas(uploadId);
+        if (res.success && res.data) {
+          // The API returns { personas: Persona[], total_personas: number }
+          const personasData = (res.data as any).personas || res.data;
+          setPersonas(personasData as ExtendedPersona[]);
+        } else {
+          setError(res.error?.message || "Failed to load personas");
+        }
+      } catch (e) {
+        console.error("Personas fetch error:", e);
+        setError("Failed to fetch data from API");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPersonas();
+  }, [uploadId]);
 
   return (
     <section
@@ -328,16 +382,34 @@ const Personas = ({ uploadId }: PersonasProps) => {
           </p>
         </motion.div>
 
-        {/* Persona cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {personas.map((persona, index) => (
-            <PersonaCard
-              key={persona.persona_id}
-              persona={persona}
-              index={index}
-            />
-          ))}
-        </div>
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mb-4" />
+            <p className="text-gray-400">Discovering customer patterns...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 glass rounded-2xl border border-red-500/20">
+            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+            <p className="text-white font-medium">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-sm transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {personas.map((persona, index) => (
+              <PersonaCard
+                key={persona.persona_id}
+                persona={persona}
+                index={index}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

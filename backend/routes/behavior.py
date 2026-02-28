@@ -753,3 +753,78 @@ def get_behavioral_insights_summary():
             'success': False,
             'error': {'code': 'INTERNAL_ERROR', 'message': 'Failed'}
         }), 500
+@behavior_bp.route('/tips', methods=['GET'])
+@jwt_required
+def get_tips():
+    """
+    Get behavioral tips (subset of recommendations)
+    """
+    try:
+        upload_id = request.args.get('upload_id')
+        user_id = g.current_user['user_id']
+        sales_model = get_sales_model()
+        transactions = sales_model.get_transactions(user_id, upload_id)
+        
+        if transactions.empty:
+            return jsonify({
+                'success': True,
+                'data': []
+            })
+            
+        # For tips, we compute the recommendations and return them
+        segmentation_service = SegmentationService()
+        affinity_service = AffinityService()
+        sentiment_service = SentimentService()
+        recommendation_service = RecommendationService()
+        
+        # Segmentation
+        rfm_df = segmentation_service.compute_rfm_scores(transactions)
+        segmented_df, segment_mapping = segmentation_service.segment_customers(rfm_df)
+        segments = segmentation_service.get_segment_summary(segmented_df, segment_mapping)
+        
+        # Affinity
+        basket = affinity_service.create_basket_matrix(transactions)
+        itemsets = affinity_service.find_frequent_itemsets(basket)
+        rules = affinity_service.generate_association_rules(itemsets)
+        bundles = affinity_service.suggest_bundles(rules)
+        
+        # Sentiment
+        sentiment_df = sentiment_service.calculate_sentiment_scores(transactions)
+        sentiment_overview = sentiment_service.get_overview(sentiment_df)
+        
+        sentiment_data = {
+            'overall_score': sentiment_overview['overall_score'],
+            'by_category': sentiment_service.get_by_category(sentiment_df),
+            'distribution': sentiment_overview['distribution'],
+            'percentages': sentiment_overview['percentages']
+        }
+        
+        # Format rules for recommender
+        rules_list = []
+        for _, rule in rules.iterrows():
+            rules_list.append({
+                'antecedents': rule['antecedents'],
+                'consequents': rule['consequents'],
+                'support': float(rule['support']),
+                'confidence': float(rule['confidence']),
+                'lift': float(rule['lift'])
+            })
+            
+        recommendations = recommendation_service.generate_recommendations(
+            segments, rules_list, sentiment_data, bundles
+        )
+        
+        # Add some 'Tip' specific metadata if needed, or just return as is
+        # The frontend Tips component will handle the display
+        
+        return jsonify({
+            'success': True,
+            'data': recommendations
+        })
+        
+    except Exception as e:
+        logger.error(f'Tips error: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': {'code': 'INTERNAL_ERROR', 'message': 'Failed to get tips'}
+        }), 500
