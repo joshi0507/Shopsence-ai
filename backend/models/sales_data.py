@@ -61,19 +61,94 @@ class SalesData:
             processed_record = {
                 'user_id': ObjectId(user_id),
                 'upload_id': upload_id,
-                'customer_id': str(record.get('customer_id', 'Unknown')),
-                'product_name': record.get('product_name', ''),
-                'date': self._parse_date(record.get('date')),
+                'customer_id': str(record.get('customer_id', record.get('Customer ID', 'Unknown'))),
+                'product_name': record.get('product_name', record.get('Product Name', '')),
+                'date': self._parse_date(record.get('date', record.get('Date'))),
                 'units_sold': units,
                 'price': price,
                 'revenue': units * price,
-                'category': record.get('category', 'Uncategorized'),
+                'category': record.get('category', record.get('Category', 'Uncategorized')),
                 'created_at': datetime.utcnow()
             }
+            
+            # Preserve other fields (like demographics)
+            for k, v in record.items():
+                if k not in processed_record and not k.startswith('_'):
+                    processed_record[k] = v
+                    
             records.append(processed_record)
         
         result = self.collection.insert_many(records)
         return len(result.inserted_ids)
+
+    def get_transactions(self, user_id: str, upload_id: Optional[str] = None) -> pd.DataFrame:
+        """
+        Get all transactions as a DataFrame.
+        """
+        query = {'user_id': ObjectId(user_id)}
+        if upload_id:
+            query['upload_id'] = upload_id
+            
+        cursor = self.collection.find(query).sort('date', 1)
+        records = list(cursor)
+        
+        if not records:
+            return pd.DataFrame(columns=['customer_id', 'date', 'revenue', 'units_sold', 'product_name'])
+            
+        df = pd.DataFrame(records)
+        
+        # Ensure customer_id exists
+        if 'customer_id' not in df.columns:
+            if 'Customer ID' in df.columns:
+                df['customer_id'] = df['Customer ID']
+            else:
+                df['customer_id'] = 'Unknown'
+                
+        # Convert ObjectId and datetime for DataFrame compatibility
+        if '_id' in df.columns:
+            df['_id'] = df['_id'].astype(str)
+        if 'user_id' in df.columns:
+            df['user_id'] = df['user_id'].astype(str)
+            
+        return df
+
+    def get_customers(self, user_id: str, upload_id: Optional[str] = None) -> pd.DataFrame:
+        """
+        Get unique customers with their demographic data if available.
+        """
+        query = {'user_id': ObjectId(user_id)}
+        if upload_id:
+            query['upload_id'] = upload_id
+            
+        # Group by customer_id and take the last record for demographics
+        pipeline = [
+            {'$match': query},
+            {'$sort': {'date': -1}},
+            {
+                '$group': {
+                    '_id': '$customer_id',
+                    'customer_id': {'$first': '$customer_id'},
+                    'Age': {'$first': '$Age'},
+                    'Gender': {'$first': '$Gender'},
+                    'Location': {'$first': '$Location'},
+                    'Preferred Payment Method': {'$first': '$Preferred Payment Method'},
+                    'Shipping Type': {'$first': '$Shipping Type'},
+                    'Discount Applied': {'$first': '$Discount Applied'}
+                }
+            }
+        ]
+        
+        results = list(self.collection.aggregate(pipeline))
+        if not results:
+            return pd.DataFrame()
+            
+        df = pd.DataFrame(results)
+        
+        # PersonaService expects 'Customer ID' for joining
+        if 'customer_id' in df.columns:
+            df['Customer ID'] = df['customer_id']
+            
+        return df
 
     def get_total_customers(self, user_id: str, upload_id: Optional[str] = None) -> int:
         """

@@ -33,6 +33,7 @@ interface DashboardHomeProps {
   onNavigate: (tab: string) => void;
   onViewReport: (id: string) => void;
   uploadId?: string;
+  onShowChat?: () => void;
 }
 
 const DashboardHome = ({
@@ -40,6 +41,7 @@ const DashboardHome = ({
   onNavigate,
   onViewReport,
   uploadId,
+  onShowChat,
 }: DashboardHomeProps) => {
   const [recentFiles, setRecentFiles] = useState<any[]>([]);
   const [kpis, setKpis] = useState<KPIData | null>(null);

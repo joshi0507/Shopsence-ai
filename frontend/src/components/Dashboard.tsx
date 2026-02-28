@@ -10,6 +10,7 @@ import WelcomeCelebration from "./WelcomeCelebration";
 import GuidedTour from "./GuidedTour";
 import Customers from "./Customers";
 import Tips from "./Tips";
+import AIChat from "./AIChat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -54,6 +55,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [userProgress, setUserProgress] = useState({
     uploads: 0,
     analyses: 0,
@@ -191,6 +194,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <AnalysisReport
           reportId={viewingReportId}
           onBack={handleBackFromReport}
+          setActiveTab={handleNavigate}
+          onShowChat={() => setShowChat(true)}
         />
       );
     }
@@ -205,12 +210,14 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           <AnalysisReport
             onBack={() => setActiveTab("dashboard")}
             latest={true}
+            setActiveTab={handleNavigate}
+            onShowChat={() => setShowChat(true)}
           />
         );
       case "customers":
         return <Customers user={user} uploadId={latestUploadId} />;
       case "tips":
-        return <Tips uploadId={latestUploadId} />;
+        return <Tips />;
       case "account":
         return <AccountSettings user={user} />;
       case "dashboard":
@@ -222,6 +229,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             user={user}
             onNavigate={handleNavigate}
             onViewReport={handleViewReport}
+            onShowChat={() => setShowChat(true)}
             uploadId={latestUploadId}
           />
         );
@@ -240,6 +248,14 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   return (
     <div className="flex min-h-screen bg-[#1A2238] relative overflow-x-hidden">
+      {/* AI Chat Side Panel */}
+      <AIChat
+        isOpen={showChat}
+        onClose={() => setShowChat(false)}
+        user={user}
+        uploadId={latestUploadId}
+      />
+
       {/* Welcome Celebration Modal */}
       <AnimatePresence>
         {showWelcome && (
@@ -435,16 +451,103 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className={`p-2.5 rounded-xl border border-white/10 transition-colors ${
+                      showNotifications
+                        ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
+                        : "bg-white/5 hover:bg-white/10 text-gray-300"
+                    }`}
                   >
-                    <Bell className="w-4 h-4 text-gray-300" />
+                    <Bell className="w-4 h-4" />
                     {notifications.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center border-2 border-[#1A2238]">
                         {notifications.length}
                       </span>
                     )}
                   </motion.button>
+
+                  <AnimatePresence>
+                    {showNotifications && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute top-full right-0 mt-3 w-80 bg-[#1e2741] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[100] p-1"
+                      >
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                          <h4 className="text-white font-bold text-sm">
+                            Notifications
+                          </h4>
+                          <button
+                            onClick={() => setNotifications([])}
+                            className="text-[10px] text-gray-500 uppercase hover:text-white transition-colors font-bold tracking-widest"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                          {notifications.length === 0 ? (
+                            <div className="p-10 text-center">
+                              <Bell className="w-10 h-10 text-gray-700 mx-auto mb-3 opacity-20" />
+                              <p className="text-sm text-gray-500 font-medium">
+                                No new notifications
+                              </p>
+                              <p className="text-[10px] text-gray-600 mt-1 uppercase tracking-tighter">
+                                We'll alert you when analysis is ready
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-0.5">
+                              {notifications.map((n) => (
+                                <button
+                                  key={n.id}
+                                  className="w-full text-left p-4 hover:bg-white/5 rounded-xl transition-all border border-transparent hover:border-white/5 group"
+                                >
+                                  <div className="flex gap-4">
+                                    <div
+                                      className={`w-2.5 h-2.5 mt-1.5 rounded-full shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${
+                                        n.type === "success"
+                                          ? "bg-green-400 shadow-green-400/20"
+                                          : n.type === "tip"
+                                            ? "bg-cyan-400 shadow-cyan-400/20"
+                                            : "bg-purple-400 shadow-purple-400/20"
+                                      }`}
+                                    />
+                                    <div className="flex-1">
+                                      <p className="text-sm text-gray-300 leading-relaxed font-medium group-hover:text-white transition-colors">
+                                        {n.message}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <div className="w-1 h-1 rounded-full bg-white/10" />
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                          {n.timestamp.toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
+
+                {/* AI Chat Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowChat(true)}
+                  className="px-4 py-2.5 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-cyan-500/20 transition-all"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Ask AI
+                </motion.button>
               </div>
             </div>
           </div>

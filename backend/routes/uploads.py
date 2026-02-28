@@ -139,6 +139,8 @@ def upload_file():
         
         # Clean data
         df = df.dropna(subset=['product_name', 'date', 'units_sold', 'price'])
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df = df.dropna(subset=['date']) # Remove rows with invalid dates
         df['units_sold'] = pd.to_numeric(df['units_sold'], errors='coerce').fillna(0).astype(int)
         df['price'] = pd.to_numeric(df['price'], errors='coerce').fillna(0)
         

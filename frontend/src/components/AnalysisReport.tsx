@@ -22,7 +22,7 @@ const parseGraph = (graphData: any) => {
   try {
     if (!graphData) return null;
     // If it's already an object, use it directly; if it's a string, parse it
-    if (typeof graphData === 'string') {
+    if (typeof graphData === "string") {
       return JSON.parse(graphData);
     }
     return graphData;
@@ -32,14 +32,127 @@ const parseGraph = (graphData: any) => {
   }
 };
 
+const PlotlyChart = memo(
+  ({ plotData, note, title }: any) => {
+    if (!plotData || !plotData.data) {
+      return null; // Don't render empty charts
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="glass rounded-3xl p-6 flex flex-col border border-white/5 hover:border-cyan-500/30 transition-all h-full"
+      >
+        <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
+        <div className="min-h-[350px] w-full" style={{ height: "350px" }}>
+          <Plot
+            data={plotData.data}
+            layout={{
+              ...plotData.layout,
+              autosize: true,
+              width: undefined, // Let Plotly handle width
+              height: 300, // Set explicit height
+              paper_bgcolor: "rgba(0,0,0,0)",
+              plot_bgcolor: "rgba(15,15,25,0.5)",
+              font: { color: "#9ca3af", size: 11 },
+              margin: { t: 30, r: 30, b: 70, l: 50 },
+              showlegend: false, // Hide legend for single trace
+              xaxis: {
+                ...plotData.layout?.xaxis,
+                gridcolor: "rgba(255,255,255,0.05)",
+                tickfont: { color: "#9ca3af", size: 9 },
+                color: "#9ca3af",
+                tickangle: -45, // Angle labels for better fit
+              },
+              yaxis: {
+                ...plotData.layout?.yaxis,
+                gridcolor: "rgba(255,255,255,0.05)",
+                tickfont: { color: "#9ca3af", size: 9 },
+                color: "#9ca3af",
+              },
+            }}
+            config={{
+              displayModeBar: false,
+              responsive: true,
+              staticPlot: false, // Allow interactions
+            }}
+            style={{ width: "100%", height: "300px" }}
+            useResizeHandler={true}
+          />
+        </div>
+        {note && (
+          <p className="mt-4 text-xs text-gray-400 leading-relaxed border-t border-white/5 pt-4">
+            {note}
+          </p>
+        )}
+      </motion.div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison function to prevent unnecessary re-renders
+    return (
+      prevProps.plotData === nextProps.plotData &&
+      prevProps.note === nextProps.note &&
+      prevProps.title === nextProps.title
+    );
+  },
+);
+
+const InsightCard = ({ icon: Icon, title, items, color, colorName }: any) => {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      className="glass rounded-3xl p-6 border border-white/5 hover:border-cyan-500/20 transition-all"
+    >
+      <div className="flex items-center gap-4 mb-6">
+        <div className={`p-3 rounded-2xl ${color || `bg-${colorName}-400/10`}`}>
+          <Icon className={`w-6 h-6 ${color ? "" : `text-${colorName}-400`}`} />
+        </div>
+        <h3 className="text-xl font-bold text-white">{title}</h3>
+      </div>
+      <div className="space-y-4">
+        {Array.isArray(items) ? (
+          items.map((item: string, i: number) => (
+            <div key={i} className="flex gap-3 items-start group">
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${colorName ? `bg-${colorName}-400/50` : "bg-cyan-400/50"} mt-1.5 shrink-0 group-hover:scale-125 transition-transform`}
+              />
+              <p className="text-gray-400 text-sm leading-relaxed">{item}</p>
+            </div>
+          ))
+        ) : (
+          <div className="flex gap-3 items-start group">
+            <div
+              className={`w-1.5 h-1.5 rounded-full ${colorName ? `bg-${colorName}-400/50` : "bg-cyan-400/50"} mt-1.5 shrink-0 group-hover:scale-125 transition-transform`}
+            />
+            <p className="text-gray-400 text-sm leading-relaxed">
+              {String(items)}
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 const AnalysisReport = ({
   reportId,
   onBack,
   latest = false,
+  setActiveTab,
+  onShowChat,
 }: {
   reportId?: string;
   onBack: () => void;
   latest?: boolean;
+  setActiveTab?: (tab: string) => void;
+  onShowChat?: () => void;
 }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -47,15 +160,16 @@ const AnalysisReport = ({
 
   // Memoize charts to prevent re-renders - MUST be called before any early returns
   const charts = useMemo(() => {
-    if (!data?.results) return {
-      mostSelling: null,
-      lowSelling: null,
-      highCost: null,
-      lowCost: null,
-      prediction: null,
-      productReport: null,
-    };
-    
+    if (!data?.results)
+      return {
+        mostSelling: null,
+        lowSelling: null,
+        highCost: null,
+        lowCost: null,
+        prediction: null,
+        productReport: null,
+      };
+
     return {
       mostSelling: parseGraph(data.results.most_selling?.graph),
       lowSelling: parseGraph(data.results.low_selling?.graph),
@@ -77,11 +191,7 @@ const AnalysisReport = ({
         if (latest) {
           const histRes = await api.getUploads();
 
-          if (
-            histRes.success &&
-            histRes.data &&
-            histRes.data.length > 0
-          ) {
+          if (histRes.success && histRes.data && histRes.data.length > 0) {
             const completed = histRes.data.find(
               (u: any) => u.status === "completed",
             );
@@ -114,7 +224,7 @@ const AnalysisReport = ({
         if (res.success && res.data) {
           // Check if we have analysis data (either in results or analysis field)
           const analysisData = res.data.results || (res.data as any).analysis;
-          
+
           if (!analysisData) {
             setErrorStatus(
               "Analysis results not available. The upload may still be processing.",
@@ -122,16 +232,18 @@ const AnalysisReport = ({
             setLoading(false);
             return;
           }
-          
+
           // Store the data with analysis in results field for compatibility
           const dataWithResults = {
             ...res.data,
-            results: analysisData
+            results: analysisData,
           };
-          
+
           setData(dataWithResults);
         } else {
-          setErrorStatus(res.error?.message || "Failed to load report details.");
+          setErrorStatus(
+            res.error?.message || "Failed to load report details.",
+          );
         }
       } catch (error: any) {
         setErrorStatus(
@@ -183,102 +295,15 @@ const AnalysisReport = ({
   const financialInsights = aiInsights.financial_insights || {};
   const executiveSummary = aiInsights.executive_summary || {};
 
-  const PlotlyChart = memo(({ plotData, note, title }: any) => {
-    if (!plotData || !plotData.data) {
-      return null; // Don't render empty charts
-    }
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="glass rounded-3xl p-6 flex flex-col"
-        whileHover={{ scale: 1.02 }} // Add subtle hover effect instead of triggering re-render
-      >
-        <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
-        <div className="min-h-[350px] w-full" style={{ height: '350px' }}>
-          <Plot
-            data={plotData.data}
-            layout={{
-              ...plotData.layout,
-              autosize: true,
-              width: undefined, // Let Plotly handle width
-              height: 300, // Set explicit height
-              paper_bgcolor: "rgba(0,0,0,0)",
-              plot_bgcolor: "rgba(15,15,25,0.5)",
-              font: { color: "#9ca3af", size: 11 },
-              margin: { t: 30, r: 30, b: 70, l: 50 },
-              showlegend: false, // Hide legend for single trace
-              xaxis: {
-                ...plotData.layout?.xaxis,
-                gridcolor: "rgba(255,255,255,0.05)",
-                tickfont: { color: "#9ca3af", size: 9 },
-                color: "#9ca3af",
-                tickangle: -45, // Angle labels for better fit
-              },
-              yaxis: {
-                ...plotData.layout?.yaxis,
-                gridcolor: "rgba(255,255,255,0.05)",
-                tickfont: { color: "#9ca3af", size: 9 },
-                color: "#9ca3af",
-              },
-            }}
-            config={{
-              displayModeBar: false,
-              responsive: true,
-              staticPlot: false, // Allow interactions
-            }}
-            style={{ width: "100%", height: "300px" }}
-            useResizeHandler={true}
-          />
-        </div>
-        {note && (
-          <p className="mt-4 text-xs text-gray-400 leading-relaxed border-t border-white/5 pt-4">
-            {note}
-          </p>
-        )}
-      </motion.div>
-    );
-  }, (prevProps, nextProps) => {
-    // Custom comparison function to prevent unnecessary re-renders
-    return (
-      prevProps.plotData === nextProps.plotData &&
-      prevProps.note === nextProps.note &&
-      prevProps.title === nextProps.title
-    );
-  });
-
-  const InsightCard = ({ icon: Icon, title, items, color }: any) => {
-    if (!items || items.length === 0) return null;
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="glass rounded-2xl p-6"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`p-2 rounded-lg ${color}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <h4 className="text-lg font-bold text-white">{title}</h4>
-        </div>
-        <ul className="space-y-2">
-          {items.map((item: string, idx: number) => (
-            <li
-              key={idx}
-              className="text-sm text-gray-300 flex items-start gap-2"
-            >
-              <span className="text-cyan-400 mt-1">•</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </motion.div>
-    );
-  };
+  const SummaryItem = ({ icon: Icon, label, value, color }: any) => (
+    <div className="text-center p-4 glass rounded-2xl border border-white/5">
+      <div className={`p-2 rounded-lg ${color} inline-block mb-2`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="text-xl font-bold text-white">{value}</div>
+      <div className="text-xs text-gray-400">{label}</div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-20">
@@ -315,22 +340,38 @@ const AnalysisReport = ({
             <h3 className="text-xl font-bold text-white">Analysis Summary</h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-400">{data.results.products || 'N/A'}</div>
-              <div className="text-sm text-gray-400">Products</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{data.results.rows_processed || 'N/A'}</div>
-              <div className="text-sm text-gray-400">Rows Processed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">{data.results.date_range?.start ? new Date(data.results.date_range.start).toLocaleDateString() || data.results.date_range.start : 'N/A'}</div>
-              <div className="text-sm text-gray-400">Start Date</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">{data.results.date_range?.end ? new Date(data.results.date_range.end).toLocaleDateString() || data.results.date_range.end : 'N/A'}</div>
-              <div className="text-sm text-gray-400">End Date</div>
-            </div>
+            <SummaryItem
+              icon={BarChart}
+              label="Products"
+              value={data.results.products || "N/A"}
+              color="bg-cyan-500/20 text-cyan-400"
+            />
+            <SummaryItem
+              icon={FileText}
+              label="Rows"
+              value={data.results.rows_processed || "N/A"}
+              color="bg-green-500/20 text-green-400"
+            />
+            <SummaryItem
+              icon={Sparkles}
+              label="Start Date"
+              value={
+                data.results.date_range?.start
+                  ? new Date(data.results.date_range.start).toLocaleDateString()
+                  : "N/A"
+              }
+              color="bg-purple-500/20 text-purple-400"
+            />
+            <SummaryItem
+              icon={Sparkles}
+              label="End Date"
+              value={
+                data.results.date_range?.end
+                  ? new Date(data.results.date_range.end).toLocaleDateString()
+                  : "N/A"
+              }
+              color="bg-orange-500/20 text-orange-400"
+            />
           </div>
         </div>
       )}
@@ -367,41 +408,36 @@ const AnalysisReport = ({
       )}
 
       {/* AI Insights Grid */}
-      {(performanceAnalysis.key_insights ||
-        marketInsights.trends ||
-        strategicRecs.immediate_actions ||
-        financialInsights.revenue_optimization) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <InsightCard
-            icon={TrendingUp}
-            title="Performance Insights"
-            items={performanceAnalysis.key_insights || []}
-            color="bg-blue-500/20 text-blue-400"
-          />
-          <InsightCard
-            icon={Target}
-            title="Market Opportunities"
-            items={marketInsights.opportunities || marketInsights.trends || []}
-            color="bg-green-500/20 text-green-400"
-          />
-          <InsightCard
-            icon={DollarSign}
-            title="Financial Recommendations"
-            items={financialInsights.revenue_optimization || []}
-            color="bg-yellow-500/20 text-yellow-400"
-          />
-          <InsightCard
-            icon={Lightbulb}
-            title="Strategic Actions"
-            items={
-              strategicRecs.immediate_actions ||
-              strategicRecs.short_term_strategies ||
-              []
-            }
-            color="bg-purple-500/20 text-purple-400"
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <InsightCard
+          icon={TrendingUp}
+          title="Performance Insights"
+          items={performanceAnalysis.key_insights || []}
+          colorName="blue"
+        />
+        <InsightCard
+          icon={Target}
+          title="Market Opportunities"
+          items={marketInsights.opportunities || marketInsights.trends || []}
+          colorName="green"
+        />
+        <InsightCard
+          icon={DollarSign}
+          title="Financial Recommendations"
+          items={financialInsights.revenue_optimization || []}
+          colorName="yellow"
+        />
+        <InsightCard
+          icon={Lightbulb}
+          title="Strategic Actions"
+          items={
+            strategicRecs.immediate_actions ||
+            strategicRecs.short_term_strategies ||
+            []
+          }
+          colorName="purple"
+        />
+      </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -452,17 +488,20 @@ const AnalysisReport = ({
             title="Low Cost but Most Sold Products"
           />
         )}
-        
+
         {/* No Charts Available Message */}
-        {!Object.values(charts).some(chart => chart !== null) && (
-          <div className="glass-card rounded-3xl p-8 mb-8 text-center">
+        {!Object.values(charts).some((chart) => chart !== null) && (
+          <div className="glass-card rounded-3xl p-8 mb-8 text-center col-span-full">
             <div className="flex items-center justify-center gap-3 mb-4">
               <BarChart className="w-6 h-6 text-gray-400" />
-              <h3 className="text-xl font-bold text-white">Charts Not Available</h3>
+              <h3 className="text-xl font-bold text-white">
+                Charts Not Available
+              </h3>
             </div>
             <p className="text-gray-400 text-base">
-              Detailed charts and visualizations will be available once the advanced analytics processing is complete.
-              The basic analysis summary above shows your key metrics.
+              Detailed charts and visualizations will be available once the
+              advanced analytics processing is complete. The basic analysis
+              summary above shows your key metrics.
             </p>
           </div>
         )}
@@ -486,7 +525,10 @@ const AnalysisReport = ({
             </p>
           </div>
         </div>
-        <button className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-void font-bold hover:shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2">
+        <button
+          onClick={onShowChat}
+          className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-void font-bold hover:shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2"
+        >
           Start Chat <ArrowRight className="w-4 h-4" />
         </button>
       </motion.div>
@@ -494,4 +536,4 @@ const AnalysisReport = ({
   );
 };
 
-export default AnalysisReport;
+export default memo(AnalysisReport);
