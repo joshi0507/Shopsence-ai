@@ -14,7 +14,7 @@ class TestFileUpload:
         """Test successful CSV file upload."""
         with open(sample_csv_file, 'rb') as f:
             response = client.post(
-                '/api/uploads',
+                '/api/v1/uploads',
                 data={'file': f},
                 headers={'Authorization': f'Bearer {auth_token}'},
                 content_type='multipart/form-data'
@@ -30,7 +30,7 @@ class TestFileUpload:
     def test_upload_no_file(self, client, db, auth_token):
         """Test upload without file."""
         response = client.post(
-            '/api/uploads',
+            '/api/v1/uploads',
             headers={'Authorization': f'Bearer {auth_token}'}
         )
         
@@ -46,7 +46,7 @@ class TestFileUpload:
         data.name = 'test.txt'
         
         response = client.post(
-            '/api/uploads',
+            '/api/v1/uploads',
             data={'file': data},
             headers={'Authorization': f'Bearer {auth_token}'},
             content_type='multipart/form-data'
@@ -62,7 +62,7 @@ class TestFileUpload:
         """Test upload without authentication."""
         with open(sample_csv_file, 'rb') as f:
             response = client.post(
-                '/api/uploads',
+                '/api/v1/uploads',
                 data={'file': f},
                 content_type='multipart/form-data'
             )
@@ -72,7 +72,7 @@ class TestFileUpload:
     def test_list_uploads(self, client, db, test_user, auth_token):
         """Test listing uploads."""
         response = client.get(
-            '/api/uploads',
+            '/api/v1/uploads',
             headers={'Authorization': f'Bearer {auth_token}'}
         )
         
@@ -81,6 +81,25 @@ class TestFileUpload:
         assert response.status_code == 200
         assert data['success'] is True
         assert isinstance(data['data'], list)
+
+    def test_manual_upload_success(self, client, db, test_user, auth_token):
+        """Test successful manual data upload."""
+        records = [
+            {'product_name': 'Test Item 1', 'date': '2024-01-01', 'units_sold': 10, 'price': 99.99},
+            {'product_name': 'Test Item 2', 'date': '2024-01-02', 'units_sold': 5, 'price': 49.99}
+        ]
+        response = client.post(
+            '/api/v1/uploads/manual',
+            json={'records': records},
+            headers={'Authorization': f'Bearer {auth_token}'}
+        )
+        
+        data = response.get_json()
+        
+        assert response.status_code == 201
+        assert data['success'] is True
+        assert 'upload_id' in data['data']
+        assert data['data']['rows_processed'] == 2
 
 
 class TestUploadValidation:
@@ -94,7 +113,7 @@ class TestUploadValidation:
         
         with open(csv_path, 'rb') as f:
             response = client.post(
-                '/api/uploads',
+                '/api/v1/uploads',
                 data={'file': f},
                 headers={'Authorization': f'Bearer {auth_token}'},
                 content_type='multipart/form-data'
@@ -113,7 +132,7 @@ class TestUploadValidation:
         
         with open(csv_path, 'rb') as f:
             response = client.post(
-                '/api/uploads',
+                '/api/v1/uploads',
                 data={'file': f},
                 headers={'Authorization': f'Bearer {auth_token}'},
                 content_type='multipart/form-data'

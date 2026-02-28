@@ -14,7 +14,7 @@ from services.analytics_service import AnalyticsService
 from services.forecast_service import ForecastService
 from services.export_service import export_service
 
-exports_bp = Blueprint('exports', __name__, url_prefix='/api/exports')
+exports_bp = Blueprint('exports', __name__)
 
 
 def get_sales_data_model():
@@ -98,12 +98,14 @@ def export_excel():
         # Generate Excel file
         excel_file = export_service.generate_excel_report(export_data, include_charts)
         
-        # Send file
+        # Send file - use timestamp instead of user ID for security
+        from datetime import datetime
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         return send_file(
             BytesIO(excel_file),
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
-            download_name=f'shopsense_report_{g.current_user["user_id"]}.xlsx'
+            download_name=f'shopsense_report_{timestamp}.xlsx'
         )
         
     except Exception as e:
@@ -153,11 +155,14 @@ def export_csv():
         # Generate CSV
         csv_file = export_service.generate_csv_export(export_data)
         
+        # Use timestamp instead of user ID for security
+        from datetime import datetime
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         return send_file(
             BytesIO(csv_file),
             mimetype='text/csv',
             as_attachment=True,
-            download_name=f'shopsense_data_{g.current_user["user_id"]}.csv'
+            download_name=f'shopsense_data_{timestamp}.csv'
         )
         
     except Exception as e:
@@ -198,11 +203,14 @@ def export_products():
         # Generate CSV
         csv_file = export_service.generate_csv_export(export_data)
         
+        # Use timestamp instead of user ID for security
+        from datetime import datetime
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         return send_file(
             BytesIO(csv_file),
             mimetype='text/csv',
             as_attachment=True,
-            download_name=f'shopsense_products_{g.current_user["user_id"]}.csv'
+            download_name=f'shopsense_products_{timestamp}.csv'
         )
         
     except Exception as e:

@@ -26,14 +26,20 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password: "",
     confirm_password: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: "" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({}); // Clear previous errors
 
     console.log('=== Auth Submit ===');
     console.log('Type:', type);
@@ -56,7 +62,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
           onLoginSuccess(res.data?.user || res.user);
           onClose();
         } else {
-          toast.error(res.error?.message || "Registration failed");
+          // Set field-specific errors
+          if (res.error?.code === 'CONFLICT') {
+            setErrors({ email: 'This email is already registered' });
+          } else if (res.error?.details) {
+            // Handle validation errors with details
+            const fieldErrors: Record<string, string> = {};
+            res.error.details.forEach((detail: any) => {
+              fieldErrors[detail.field] = detail.message;
+            });
+            setErrors(fieldErrors);
+          } else {
+            setErrors({ submit: res.error?.message || "Registration failed" });
+          }
         }
       } else {
         // Login: use username field which contains email or username
@@ -74,15 +92,21 @@ const AuthModal: React.FC<AuthModalProps> = ({
           onLoginSuccess(res.data?.user || res.user);
           onClose();
         } else {
-          toast.error(res.error?.message || "Login failed");
+          // Set field-specific errors for login
+          if (res.error?.code === 'INVALID_CREDENTIALS') {
+            setErrors({
+              username: 'Invalid email or password',
+              password: 'Invalid email or password'
+            });
+          } else {
+            setErrors({ submit: res.error?.message || "Login failed" });
+          }
         }
       }
     } catch (error: any) {
-      // Only show user-facing errors, not auth token errors
-      if (error.name !== 'AuthenticationError' && error.code !== 'TOKEN_MISSING') {
-        console.error('Auth error:', error);
-      }
-      toast.error(error.message || "Connection error. Make sure the backend is running.");
+      console.error('Auth error:', error);
+      // Display error from API
+      setErrors({ submit: error.message || "Connection error. Make sure the backend is running." });
     } finally {
       setLoading(false);
     }
@@ -129,6 +153,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* General Error Message */}
+              {errors.submit && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {errors.submit}
+                </div>
+              )}
+
               {type === "signup" && (
                 <div className="relative">
                   <User
@@ -141,9 +172,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleChange}
-                    className="w-full bg-void border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className={`w-full bg-void border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors ${
+                      errors.username ? 'border-red-500/50' : 'border-white/10'
+                    }`}
                     required
                   />
+                  {errors.username && (
+                    <p className="mt-1 text-xs text-red-400">{errors.username}</p>
+                  )}
                 </div>
               )}
 
@@ -160,9 +196,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   }
                   value={type === "login" ? formData.username : formData.email}
                   onChange={handleChange}
-                  className="w-full bg-void border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className={`w-full bg-void border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors ${
+                    errors.username || errors.email ? 'border-red-500/50' : 'border-white/10'
+                  }`}
                   required
                 />
+                {(errors.username || errors.email) && (
+                  <p className="mt-1 text-xs text-red-400">{errors.username || errors.email}</p>
+                )}
               </div>
 
               <div className="relative">
@@ -176,9 +217,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full bg-void border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className={`w-full bg-void border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors ${
+                    errors.password ? 'border-red-500/50' : 'border-white/10'
+                  }`}
                   required
                 />
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-400">{errors.password}</p>
+                )}
               </div>
 
               {type === "signup" && (
@@ -193,9 +239,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="Confirm Password"
                     value={formData.confirm_password}
                     onChange={handleChange}
-                    className="w-full bg-void border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className={`w-full bg-void border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors ${
+                      errors.confirm_password ? 'border-red-500/50' : 'border-white/10'
+                    }`}
                     required
                   />
+                  {errors.confirm_password && (
+                    <p className="mt-1 text-xs text-red-400">{errors.confirm_password}</p>
+                  )}
                 </div>
               )}
 

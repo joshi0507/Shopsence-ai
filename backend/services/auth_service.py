@@ -123,21 +123,32 @@ class AuthService:
             dict or None: Decoded token payload or None if invalid.
         """
         try:
+            # Check if token is blacklisted
+            db = current_app.config.get('MONGO_DB')
+            if db is not None:
+                is_blacklisted = db['blacklisted_tokens'].find_one({'token': token})
+                if is_blacklisted:
+                    current_app.logger.warning(f"Attempt to use blacklisted token: {token[:10]}...")
+                    return None
+
+            # jwt.decode handles expiration (exp) and type (iat/nbf) validation internally
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             
-            # Verify token type
+            # Verify token type explicitly from our payload structure
             if payload.get('token_type') != token_type:
-                return None
-            
-            # Check expiration (jwt.decode already verifies this, but double-check)
-            if datetime.utcnow() > datetime.fromtimestamp(payload['exp']):
+                current_app.logger.warning(f"Token type mismatch: expected {token_type}, got {payload.get('token_type')}")
                 return None
             
             return payload
             
         except jwt.ExpiredSignatureError:
+            current_app.logger.info(f"Token expired: {token[:10]}...")
             return None
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            current_app.logger.warning(f"Invalid token: {str(e)}")
+            return None
+        except Exception as e:
+            current_app.logger.error(f"Token verification error: {str(e)}")
             return None
     
     def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
@@ -155,6 +166,9 @@ class AuthService:
         if not payload:
             return None
         
+        # Revoke old refresh token (optional but safer)
+        self.revoke_token(refresh_token)
+        
         # Create minimal user object for token generation
         user = {
             '_id': payload['user_id'],
@@ -169,16 +183,29 @@ class AuthService:
         """
         Revoke a token (add to blacklist).
         
-        Note: For production, implement token blacklist in Redis/database.
-        
         Args:
             token: Token to revoke.
         
         Returns:
             bool: True if successful.
         """
-        # TODO: Implement token blacklist
-        return True
+        try:
+            # Decode token to get expiration
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm], options={"verify_exp": False})
+            expires_at = datetime.fromtimestamp(payload['exp'])
+            
+            db = current_app.config.get('MONGO_DB')
+            if db is not None:
+                db['blacklisted_tokens'].update_one(
+                    {'token': token},
+                    {'$set': {'token': token, 'expires_at': expires_at}},
+                    upsert=True
+                )
+                return True
+            return False
+        except Exception as e:
+            current_app.logger.error(f"Error revoking token: {str(e)}")
+            return False
 
 
 def jwt_required(f):

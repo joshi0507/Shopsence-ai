@@ -28,16 +28,29 @@ function App() {
   }, []);
 
   const checkAuth = async () => {
+    // Check if token exists before making API call to avoid 401 console errors
+    const token = localStorage.getItem("shopsense_token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.getCurrentUser();
       if (res && res.success) {
         setUser(res.data);
       }
     } catch (e: any) {
+      if (e.name === "AuthenticationError") {
+        localStorage.removeItem("shopsense_token");
+      }
       // Silent fail for auth errors - expected when not logged in
-      // Only log non-auth errors
-      if (e.name !== 'AuthenticationError' && e.message !== 'Authentication token required') {
-        console.error('Auth check failed', e);
+      if (
+        e.name !== "AuthenticationError" &&
+        e.message !== "Authentication token required" &&
+        e.code !== "TOKEN_MISSING"
+      ) {
+        console.error("Auth check failed", e);
       }
     } finally {
       setLoading(false);
@@ -94,7 +107,7 @@ function App() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
         {/* Buzzy texture overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
@@ -108,9 +121,12 @@ function App() {
   // If user is authenticated, render the Dashboard
   if (user) {
     return (
-      <div className="min-h-screen bg-black text-white overflow-hidden relative" style={{ position: 'relative' }}>
+      <div
+        className="min-h-screen bg-black text-white overflow-hidden relative"
+        style={{ position: "relative" }}
+      >
         {/* Buzzy texture overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-10 pointer-events-none"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
@@ -126,9 +142,12 @@ function App() {
 
   // Otherwise, render the Landing Page
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden relative" style={{ position: 'relative' }}>
+    <div
+      className="min-h-screen bg-black text-white overflow-x-hidden"
+      style={{ position: "relative" }}
+    >
       {/* Buzzy texture overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
@@ -143,7 +162,7 @@ function App() {
       <Navbar onOpenAuth={openAuth} />
 
       {/* Main content */}
-      <main className="relative z-10">
+      <main className="relative z-10" style={{ position: "relative" }}>
         <ScrollReveal>
           <Hero onOpenAuth={openAuth} />
         </ScrollReveal>

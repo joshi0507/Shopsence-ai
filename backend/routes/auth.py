@@ -13,7 +13,7 @@ from models.user import User
 from services.auth_service import AuthService, jwt_required
 from services.auth_service import jwt_required as jwt_required_decorator
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+auth_bp = Blueprint('auth', __name__)
 
 
 def get_user_model():
@@ -45,6 +45,16 @@ def validate_password(password: str) -> tuple:
     Returns:
         tuple: (is_valid, error_message)
     """
+    from flask import current_app
+    is_dev = current_app.config.get('ENVIRONMENT') == 'development'
+    
+    # In development, be more lenient to speed up testing
+    if is_dev:
+        if len(password) < 4:
+            return False, 'Password must be at least 4 characters long in development'
+        return True, None
+
+    # Production requirements
     if len(password) < 8:
         return False, 'Password must be at least 8 characters long'
     
@@ -88,7 +98,7 @@ def register():
         email = data.get('email', '').strip()
         password = data.get('password', '')
         company_name = data.get('company_name', '').strip()
-        print(username)
+        
         # Validation
         errors = []
         
@@ -162,10 +172,10 @@ def login():
     """
     try:
         data = request.get_json()
-        current_app.logger.info(f'Login attempt with data: {data}')
+        current_app.logger.info('Login attempt received')
 
         if not data:
-            current_app.logger.error('No JSON data received')
+            current_app.logger.warning('No JSON data received in login request')
             return jsonify({
                 'success': False,
                 'error': {'code': 'INVALID_REQUEST', 'message': 'Request body required'}
@@ -174,10 +184,10 @@ def login():
         identifier = data.get('identifier', '').strip()
         password = data.get('password', '')
 
-        current_app.logger.info(f'Identifier: {identifier}, Password present: {bool(password)}')
+        current_app.logger.debug(f'Login attempt for identifier: {identifier[:3]}***')
 
         if not identifier or not password:
-            current_app.logger.error(f'Missing credentials - identifier: {bool(identifier)}, password: {bool(password)}')
+            current_app.logger.warning('Missing credentials in login attempt')
             return jsonify({
                 'success': False,
                 'error': {'code': 'VALIDATION_ERROR', 'message': 'Email/username and password required'}
@@ -188,7 +198,7 @@ def login():
         user = user_model.authenticate(identifier, password)
 
         if not user:
-            current_app.logger.warning(f'Failed login attempt for: {identifier}')
+            current_app.logger.warning(f'Failed login attempt for identifier: {identifier[:3]}***')
             return jsonify({
                 'success': False,
                 'error': {'code': 'INVALID_CREDENTIALS', 'message': 'Invalid email/username or password'}
@@ -198,7 +208,7 @@ def login():
         auth_service = get_auth_service()
         tokens = auth_service.generate_tokens(user)
 
-        current_app.logger.info(f'Login successful for: {identifier}')
+        current_app.logger.info(f'Login successful for user: {user.get("username")}')
         return jsonify({
             'success': True,
             'message': 'Login successful',
@@ -207,12 +217,49 @@ def login():
 
     except Exception as e:
         current_app.logger.error(f'Login error: {str(e)}')
-        current_app.logger.error(f'Exception type: {type(e).__name__}')
-        import traceback
-        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         return jsonify({
             'success': False,
             'error': {'code': 'INTERNAL_ERROR', 'message': f'Login failed: {str(e)}'}
+        }), 500
+
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required
+def logout():
+    """
+    Revoke current user's tokens and logout.
+
+    Request Body (optional):
+        refresh_token (str): Refresh token to also revoke
+
+    Returns:
+        JSON: Success message
+    """
+    try:
+        # Revoke access token
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            token = auth_header.split(' ')[1]
+            auth_service = get_auth_service()
+            auth_service.revoke_token(token)
+            current_app.logger.info(f'Access token revoked: {token[:10]}...')
+
+        # Also revoke refresh token if provided
+        data = request.get_json() or {}
+        refresh_token = data.get('refresh_token')
+        if refresh_token:
+            auth_service.revoke_token(refresh_token)
+            current_app.logger.info(f'Refresh token revoked: {refresh_token[:10]}...')
+
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
+    except Exception as e:
+        current_app.logger.error(f'Logout error: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': {'code': 'INTERNAL_ERROR', 'message': 'Logout failed'}
         }), 500
 
 
