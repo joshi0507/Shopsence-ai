@@ -56,14 +56,16 @@ class SalesData:
         # Add metadata to each record
         records = []
         for record in data:
+            units = int(record.get('units_sold', 0))
+            price = float(record.get('price', 0))
             processed_record = {
                 'user_id': ObjectId(user_id),
                 'upload_id': upload_id,
                 'product_name': record.get('product_name', ''),
                 'date': self._parse_date(record.get('date')),
-                'units_sold': int(record.get('units_sold', 0)),
-                'price': float(record.get('price', 0)),
-                'revenue': float(record.get('units_sold', 0)) * float(record.get('price', 0)),
+                'units_sold': units,
+                'price': price,
+                'revenue': units * price,  # Fixed: correct revenue calculation
                 'category': record.get('category', 'Uncategorized'),
                 'created_at': datetime.utcnow()
             }

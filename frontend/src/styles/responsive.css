@@ -1,0 +1,418 @@
+/**
+ * ShopSense AI - Responsive Design Utilities
+ * 
+ * This file contains responsive design patterns and utilities
+ * for consistent mobile-first responsive behavior.
+ */
+
+/* ============================================================================
+   BREAKPOINTS (Tailwind CSS)
+   ============================================================================
+   sm: 640px   - Small devices (landscape phones)
+   md: 768px   - Medium devices (tablets)
+   lg: 1024px  - Large devices (desktops)
+   xl: 1280px  - Extra large devices (large desktops)
+   2xl: 1536px - 2X Extra large devices (extra large desktops)
+   ============================================================================ */
+
+/* ============================================================================
+   RESPONSIVE TYPOGRAPHY
+   ============================================================================ */
+
+/* Fluid typography that scales with viewport */
+:root {
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.5rem);
+  --text-xl: clamp(1.25rem, 1.125rem + 0.625vw, 1.875rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem);
+  --text-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 3rem);
+  --text-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3.75rem);
+}
+
+/* ============================================================================
+   TOUCH-FRIENDLY TAP TARGETS
+   ============================================================================ */
+
+/* Minimum tap target size for mobile (44x44px as per WCAG) */
+button,
+a,
+input,
+select,
+textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Ensure proper spacing for interactive elements */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+/* ============================================================================
+   RESPONSIVE CONTAINERS
+   ============================================================================ */
+
+/* Container with responsive padding */
+.container-responsive {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE GRID
+   ============================================================================ */
+
+/* Auto-fit grid that adjusts columns based on screen size */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE SPACING
+   ============================================================================ */
+
+/* Responsive padding utility */
+.section-padding {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .section-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .section-padding {
+    padding: 2.5rem;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE IMAGES
+   ============================================================================ */
+
+/* Ensure images never overflow their container */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Responsive image container */
+.img-responsive {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* ============================================================================
+   RESPONSIVE TABLES
+   ============================================================================ */
+
+/* Make tables scrollable on mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   RESPONSIVE NAVIGATION
+   ============================================================================ */
+
+/* Mobile-first navigation styles */
+.nav-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .nav-mobile {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE CARDS
+   ============================================================================ */
+
+/* Card with responsive padding */
+.card-responsive {
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .card-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-responsive {
+    padding: 2rem;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE MODALS
+   ============================================================================ */
+
+/* Modal that adapts to screen size */
+.modal-responsive {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    max-height: 80vh;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE FORMS
+   ============================================================================ */
+
+/* Form inputs that scale properly */
+.input-responsive {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem; /* Prevents zoom on iOS */
+  min-height: 44px;
+}
+
+/* Stack form elements on mobile */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE BUTTONS
+   ============================================================================ */
+
+/* Button that stacks on mobile */
+.btn-group-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .btn-group-responsive {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* Full-width buttons on mobile */
+.btn-mobile-full {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .btn-mobile-full {
+    width: auto;
+  }
+}
+
+/* ============================================================================
+   HIDE/SHOW BASED ON SCREEN SIZE
+   ============================================================================ */
+
+/* Hide on mobile, show on desktop */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+/* Show on mobile, hide on desktop */
+.show-mobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   SAFE AREAS (for notched devices)
+   ============================================================================ */
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ============================================================================
+   SCROLL OPTIMIZATION
+   ============================================================================ */
+
+/* Smooth scrolling with fallback */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent horizontal scroll */
+.no-overflow-x {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus visible for better keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #FF9E6D;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  /* Hide navigation and interactive elements */
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure text is readable */
+  body {
+    font-size: 12pt;
+    color: black;
+    background: white;
+  }
+
+  /* Remove backgrounds */
+  * {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

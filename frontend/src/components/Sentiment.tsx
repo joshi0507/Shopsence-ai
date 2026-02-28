@@ -1,189 +1,75 @@
-import { useRef, useEffect, useState } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 import { ThumbsUp, ThumbsDown, Heart, Star, MessageCircle } from "lucide-react";
+import { SentimentOverview, CategorySentiment, Keyword } from "../lib/api";
+import Plot from "react-plotly.js";
 
-const WordCloud = () => {
-  const words = [
-    { text: "Amazing quality", size: "text-lg", color: "#FF9E6D" },
-    { text: "Fast shipping", size: "text-base", color: "#FF6D6D" },
-    { text: "Great value", size: "text-lg", color: "#FFB08A" },
-    { text: "Highly recommend", size: "text-xl", color: "#FF9E6D" },
-    { text: "Excellent product", size: "text-base", color: "#FFD0B8" },
-    { text: "Love it", size: "text-sm", color: "#FF9E6D" },
-    { text: "Worth every penny", size: "text-lg", color: "#FF6D6D" },
-    { text: "Best purchase", size: "text-base", color: "#FFB08A" },
-    { text: "Exceeded expectations", size: "text-xl", color: "#FF9E6D" },
-    { text: "Perfect fit", size: "text-sm", color: "#FFD0B8" },
-    { text: "Beautiful design", size: "text-base", color: "#FF9E6D" },
-    { text: "Amazing service", size: "text-lg", color: "#FF6D6D" },
-  ];
+interface SentimentProps {
+  uploadId?: string;
+}
 
-  return (
-    <div className="flex flex-wrap justify-center gap-3 p-4">
-      {words.map((word, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, scale: 0.5 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.05 }}
-          whileHover={{ scale: 1.1 }}
-          className="word-cloud-item cursor-default"
-          style={{ color: word.color }}
-        >
-          <span className={word.size}>{word.text}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
+// Demo data for landing page preview
+const DEMO_OVERVIEW: SentimentOverview = {
+  overall_score: 74,
+  average_rating: 4.2,
+  total_reviews: 12840,
+  distribution: { positive: 9470, neutral: 2310, negative: 1060 },
+  percentages: { positive: 73.8, neutral: 18.0, negative: 8.2 },
+  rating_distribution: { "1": 340, "2": 720, "3": 1590, "4": 4210, "5": 5980 },
 };
 
-const SentimentGauge = () => {
-  const gaugeRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(gaugeRef, { once: true });
-  const [score, setScore] = useState(0);
+const DEMO_CATEGORIES: CategorySentiment[] = [
+  {
+    category: "Clothing",
+    sentiment_score: 78,
+    avg_rating: 4.3,
+    review_count: 4200,
+    positive_percentage: 78,
+    trend: "up",
+  },
+  {
+    category: "Footwear",
+    sentiment_score: 82,
+    avg_rating: 4.5,
+    review_count: 3100,
+    positive_percentage: 82,
+    trend: "up",
+  },
+  {
+    category: "Accessories",
+    sentiment_score: 65,
+    avg_rating: 3.9,
+    review_count: 2800,
+    positive_percentage: 65,
+    trend: "stable",
+  },
+  {
+    category: "Electronics",
+    sentiment_score: 71,
+    avg_rating: 4.1,
+    review_count: 1940,
+    positive_percentage: 71,
+    trend: "down",
+  },
+  {
+    category: "Home & Garden",
+    sentiment_score: 69,
+    avg_rating: 4.0,
+    review_count: 800,
+    positive_percentage: 69,
+    trend: "stable",
+  },
+];
 
-  useEffect(() => {
-    if (isInView) {
-      const targetScore = 78;
-      const duration = 2000;
-      const interval = 20;
-      const increment = targetScore / (duration / interval);
-      const timer = setInterval(() => {
-        setScore((prev) => {
-          if (prev >= targetScore) {
-            clearInterval(timer);
-            return targetScore;
-          }
-          return prev + increment;
-        });
-      }, interval);
-      return () => clearInterval(timer);
-    }
-  }, [isInView]);
-
-  return (
-    <div ref={gaugeRef} className="relative w-64 h-32 mx-auto">
-      {/* Gauge background */}
-      <svg viewBox="0 0 200 120" className="w-full h-full">
-        <defs>
-          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#FF6D6D" />
-            <stop offset="50%" stopColor="#FF9E6D" />
-            <stop offset="100%" stopColor="#FFD0B8" />
-          </linearGradient>
-        </defs>
-
-        {/* Background arc */}
-        <path
-          d="M 20 100 A 80 80 0 0 1 180 100"
-          fill="none"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="12"
-          strokeLinecap="round"
-        />
-
-        {/* Active arc */}
-        <motion.path
-          d="M 20 100 A 80 80 0 0 1 180 100"
-          fill="none"
-          stroke="url(#gaugeGradient)"
-          strokeWidth="12"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: score / 100 }}
-          transition={{ duration: 2, ease: "easeOut" }}
-        />
-
-        {/* Tick marks */}
-        {[0, 25, 50, 75, 100].map((tick, i) => {
-          const angle = (180 + tick * 1.8) * (Math.PI / 180);
-          const x1 = 100 + 70 * Math.cos(angle);
-          const y1 = 100 + 70 * Math.sin(angle);
-          const x2 = 100 + 80 * Math.cos(angle);
-          const y2 = 100 + 80 * Math.sin(angle);
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1"
-            />
-          );
-        })}
-
-        {/* Labels */}
-        <text x="25" y="115" fill="#FF6D6D" fontSize="10" textAnchor="middle">
-          Negative
-        </text>
-        <text x="100" y="40" fill="#FF9E6D" fontSize="10" textAnchor="middle">
-          Neutral
-        </text>
-        <text x="175" y="115" fill="#FFD0B8" fontSize="10" textAnchor="middle">
-          Positive
-        </text>
-      </svg>
-
-      {/* Needle */}
-      <motion.div
-        className="absolute bottom-0 left-1/2 w-0.5 h-20 bg-white origin-bottom"
-        animate={{ rotate: -90 + (score / 100) * 180 }}
-        transition={{ duration: 2, ease: "easeOut" }}
-        style={{ transformOrigin: "bottom center" }}
-      />
-
-      {/* Center dot */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg" />
-
-      {/* Score display */}
-      <motion.div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <div className="text-4xl font-bold gradient-text">
-          {Math.round(score)}%
-        </div>
-        <div className="text-xs text-gray-400">Positive Sentiment</div>
-      </motion.div>
-    </div>
-  );
-};
-
-const Sentiment = () => {
+const Sentiment = ({ uploadId }: SentimentProps) => {
+  const [overview] = useState<SentimentOverview | null>(DEMO_OVERVIEW);
+  const [byCategory] = useState<CategorySentiment[]>(DEMO_CATEGORIES);
+  const [keywords] = useState<{
+    positive_keywords: Keyword[];
+    negative_keywords: Keyword[];
+  } | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-
-  const stats = [
-    {
-      icon: <MessageCircle className="w-5 h-5" />,
-      value: "12.5K",
-      label: "Reviews Analyzed",
-      color: "#FF9E6D",
-    },
-    {
-      icon: <ThumbsUp className="w-5 h-5" />,
-      value: "78%",
-      label: "Positive",
-      color: "#FFD0B8",
-    },
-    {
-      icon: <ThumbsDown className="w-5 h-5" />,
-      value: "8%",
-      label: "Negative",
-      color: "#FF6D6D",
-    },
-    {
-      icon: <Star className="w-5 h-5" />,
-      value: "4.6",
-      label: "Avg Rating",
-      color: "#FF9E6D",
-    },
-  ];
 
   return (
     <section
@@ -226,8 +112,9 @@ const Sentiment = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Sentiment gauge */}
+        {/* Sentiment Gauge and Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Sentiment Gauge */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -237,10 +124,61 @@ const Sentiment = () => {
             <h3 className="text-xl font-bold text-white mb-6 text-center">
               Overall Sentiment Score
             </h3>
-            <SentimentGauge />
+            <div className="relative w-64 h-32 mx-auto">
+              {/* Gauge SVG */}
+              <svg viewBox="0 0 200 120" className="w-full h-full">
+                <defs>
+                  <linearGradient
+                    id="gaugeGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop offset="0%" stopColor="#FF6D6D" />
+                    <stop offset="50%" stopColor="#FF9E6D" />
+                    <stop offset="100%" stopColor="#FFD0B8" />
+                  </linearGradient>
+                </defs>
+
+                {/* Background arc */}
+                <path
+                  d="M 20 100 A 80 80 0 0 1 180 100"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.1)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                />
+
+                {/* Active arc */}
+                <motion.path
+                  d="M 20 100 A 80 80 0 0 1 180 100"
+                  fill="none"
+                  stroke="url(#gaugeGradient)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: overview.overall_score / 100 }}
+                  transition={{ duration: 2, ease: "easeOut" }}
+                />
+              </svg>
+
+              {/* Score display */}
+              <motion.div
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+              >
+                <div className="text-4xl font-bold gradient-text">
+                  {overview.overall_score.toFixed(0)}%
+                </div>
+                <div className="text-xs text-gray-400">Positive Sentiment</div>
+              </motion.div>
+            </div>
           </motion.div>
 
-          {/* Word cloud */}
+          {/* Distribution */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -248,36 +186,176 @@ const Sentiment = () => {
             className="glass-card rounded-2xl p-6 sm:p-8"
           >
             <h3 className="text-xl font-bold text-white mb-6 text-center">
-              Top Positive Keywords
+              Sentiment Distribution
             </h3>
-            <WordCloud />
+            <div className="space-y-4">
+              {/* Positive */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <ThumbsUp className="w-5 h-5" />
+                    <span className="font-medium">Positive</span>
+                  </div>
+                  <span className="text-white font-semibold">
+                    {overview.percentages.positive.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-green-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${overview.percentages.positive}%` }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  {overview.distribution.positive} reviews
+                </div>
+              </div>
+
+              {/* Neutral */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-yellow-400">
+                    <Star className="w-5 h-5" />
+                    <span className="font-medium">Neutral</span>
+                  </div>
+                  <span className="text-white font-semibold">
+                    {overview.percentages.neutral.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-yellow-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${overview.percentages.neutral}%` }}
+                    transition={{ duration: 1, delay: 0.7 }}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  {overview.distribution.neutral} reviews
+                </div>
+              </div>
+
+              {/* Negative */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <ThumbsDown className="w-5 h-5" />
+                    <span className="font-medium">Negative</span>
+                  </div>
+                  <span className="text-white font-semibold">
+                    {overview.percentages.negative.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-red-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${overview.percentages.negative}%` }}
+                    transition={{ duration: 1, delay: 0.9 }}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  {overview.distribution.negative} reviews
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
+
+        {/* Category Sentiment */}
+        {byCategory.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="glass-card rounded-2xl p-6 sm:p-8 mb-8"
+          >
+            <h3 className="text-xl font-bold text-white mb-6">
+              Sentiment by Category
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {byCategory.map((category, index) => (
+                <motion.div
+                  key={category.category}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="p-4 rounded-xl bg-white/5 border border-white/10"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-white">
+                      {category.category}
+                    </span>
+                    <span
+                      className={`text-sm px-2 py-1 rounded-full ${
+                        category.sentiment_score >= 70
+                          ? "bg-green-500/20 text-green-400"
+                          : category.sentiment_score >= 50
+                            ? "bg-yellow-500/20 text-yellow-400"
+                            : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {category.sentiment_score.toFixed(0)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-400">
+                    <span>Avg Rating: {category.avg_rating.toFixed(1)}</span>
+                    <span>{category.review_count} reviews</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Stats row */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8"
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
         >
-          {stats.map((stat, i) => (
-            <div key={i} className="glass-card rounded-xl p-4 text-center">
-              <div
-                className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center"
-                style={{
-                  backgroundColor: `${stat.color}20`,
-                  color: stat.color,
-                }}
-              >
-                {stat.icon}
-              </div>
-              <div className="text-2xl font-bold" style={{ color: stat.color }}>
-                {stat.value}
-              </div>
-              <div className="text-sm text-gray-400">{stat.label}</div>
+          <div className="glass-card rounded-xl p-4 text-center">
+            <div className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center bg-[#FF9E6D]/20">
+              <MessageCircle className="w-5 h-5" style={{ color: "#FF9E6D" }} />
             </div>
-          ))}
+            <div className="text-2xl font-bold text-[#FF9E6D]">
+              {overview.total_reviews.toLocaleString()}
+            </div>
+            <div className="text-sm text-gray-400">Reviews Analyzed</div>
+          </div>
+
+          <div className="glass-card rounded-xl p-4 text-center">
+            <div className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center bg-[#FFD0B8]/20">
+              <ThumbsUp className="w-5 h-5" style={{ color: "#FFD0B8" }} />
+            </div>
+            <div className="text-2xl font-bold text-[#FFD0B8]">
+              {overview.percentages.positive.toFixed(0)}%
+            </div>
+            <div className="text-sm text-gray-400">Positive</div>
+          </div>
+
+          <div className="glass-card rounded-xl p-4 text-center">
+            <div className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center bg-[#FF6D6D]/20">
+              <ThumbsDown className="w-5 h-5" style={{ color: "#FF6D6D" }} />
+            </div>
+            <div className="text-2xl font-bold text-[#FF6D6D]">
+              {overview.percentages.negative.toFixed(0)}%
+            </div>
+            <div className="text-sm text-gray-400">Negative</div>
+          </div>
+
+          <div className="glass-card rounded-xl p-4 text-center">
+            <div className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center bg-[#FF9E6D]/20">
+              <Star className="w-5 h-5" style={{ color: "#FF9E6D" }} />
+            </div>
+            <div className="text-2xl font-bold text-[#FF9E6D]">
+              {overview.average_rating.toFixed(1)}
+            </div>
+            <div className="text-sm text-gray-400">Avg Rating</div>
+          </div>
         </motion.div>
       </div>
     </section>

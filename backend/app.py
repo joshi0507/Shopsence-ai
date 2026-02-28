@@ -16,6 +16,11 @@ from flask_socketio import SocketIO
 from pymongo import MongoClient
 from flask_limiter import Limiter
 from flask_talisman import Talisman
+import sys
+# Ensure the backend directory is in the path for consistent imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
 # Import configuration and security
 from security_config import SecurityConfig, get_security_config
@@ -27,6 +32,7 @@ from routes.uploads import uploads_bp
 from routes.analytics import analytics_bp
 from routes.dashboard import dashboard_bp
 from routes.exports import exports_bp
+from routes.behavior import behavior_bp
 
 # Import middleware
 from middleware.error_handler import ErrorHandler
@@ -61,7 +67,9 @@ def create_app(config_name: str = None):
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'development')
     
-    app.config.from_object(config_class.get(config_name, config_class['development']))
+    # Get config class with proper fallback
+    config_obj = config_class.get(config_name) or config_class['development']
+    app.config.from_object(config_obj)
     
     # Override with security config if available
     if security_config:
@@ -161,14 +169,19 @@ def init_database(app: Flask):
         # Test connection
         client.admin.command('ping')
         
-        db = client['shopsense_analytics']
+        # Get database name from config or use default
+        db_name = app.config.get('MONGO_DB_NAME', 'shopsense_analytics')
+        db = client[db_name]
         app.config['MONGO_DB'] = db
         app.config['MONGO_CLIENT'] = client
         
-        app.logger.info('MongoDB connected')
+        # Create TTL index for blacklisted tokens (expires automatically)
+        db['blacklisted_tokens'].create_index('expires_at', expireAfterSeconds=0)
+        
+        app.logger.info(f'MongoDB connected to database: {db_name}')
 
     except Exception as e:
-        app.logger.error(f'MongoDB connection failed: {e}')
+        app.logger.error(f'MongoDB connection failed: {str(e)}')
         # Don't raise - allow app to start for development
 
 
@@ -238,11 +251,17 @@ def register_blueprints(app: Flask):
     Args:
         app: Flask application instance.
     """
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(uploads_bp)
-    app.register_blueprint(analytics_bp)
-    app.register_blueprint(dashboard_bp)
-    app.register_blueprint(exports_bp)
+    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+    app.register_blueprint(uploads_bp, url_prefix='/api/v1/uploads')
+    app.register_blueprint(analytics_bp, url_prefix='/api/v1/analytics')
+    app.register_blueprint(dashboard_bp, url_prefix='/api/v1/dashboard')
+    app.register_blueprint(exports_bp, url_prefix='/api/v1/exports')
+    app.register_blueprint(behavior_bp, url_prefix='/api/v1/behavior')
+
+    @app.route('/api/v1/health')
+    def health_check():
+        """Health check endpoint for monitoring."""
+        return {'status': 'healthy', 'version': '1.0.0', 'environment': app.config.get('ENVIRONMENT')}
 
     app.logger.info('API blueprints registered')
 

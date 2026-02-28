@@ -14,7 +14,7 @@ from services.analytics_service import AnalyticsService
 from services.forecast_service import ForecastService
 from routes.auth import jwt_required
 
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
+dashboard_bp = Blueprint('dashboard', __name__)
 
 
 def get_sales_data_model():
