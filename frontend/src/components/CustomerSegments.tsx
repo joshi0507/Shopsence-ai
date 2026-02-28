@@ -15,41 +15,42 @@ import Plot from "react-plotly.js";
 
 interface CustomerSegmentsProps {
   uploadId?: string;
+  onViewCustomers?: (segmentId: number) => void;
 }
 
-const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
+const CustomerSegments = ({
+  uploadId,
+  onViewCustomers,
+}: CustomerSegmentsProps) => {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [segmentMapping, setSegmentMapping] = useState<Record<number, string>>(
-    {}
+    {},
   );
-  const [visualization, setVisualization] = useState<{
-    labels: string[];
-    values: number[];
-    revenues: number[];
-    colors: string[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [visualization, setVisualization] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   useEffect(() => {
     const fetchSegments = async () => {
+      if (!uploadId) return;
+
       setLoading(true);
       setError(null);
-
       try {
-        const response = await api.getBehaviorSegments(uploadId);
-
-        if (response.success && response.data) {
-          setSegments(response.data.segments);
-          setSegmentMapping(response.data.segment_mapping);
-          setVisualization(response.data.visualization);
+        const res = await api.getBehaviorSegments(uploadId);
+        if (res.success && res.data) {
+          // The API returns { segments: Segment[], ... }
+          const segmentsData = (res.data as any).segments || res.data;
+          setSegments(segmentsData as Segment[]);
+          setVisualization((res.data as any).visualization);
         } else {
-          setError(response.error?.message || "Failed to load segments");
+          setError(res.error?.message || "Failed to load segments");
         }
-      } catch (err: any) {
-        setError(err.message || "Network error");
+      } catch (e) {
+        console.error("Segments fetch error:", e);
+        setError("Failed to fetch data from API");
       } finally {
         setLoading(false);
       }
@@ -94,7 +95,9 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
     return (
       <div className="glass-card rounded-2xl p-8 text-center">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-white mb-2">Error Loading Segments</h3>
+        <h3 className="text-xl font-bold text-white mb-2">
+          Error Loading Segments
+        </h3>
         <p className="text-gray-400">{error}</p>
       </div>
     );
@@ -114,8 +117,7 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
           <span className="text-sm text-gray-300">Customer Segmentation</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-          Discover Your{" "}
-          <span className="gradient-text">Customer Segments</span>
+          Discover Your <span className="gradient-text">Customer Segments</span>
         </h2>
         <p className="text-gray-400 max-w-2xl mx-auto">
           AI-powered RFM analysis reveals distinct customer groups based on
@@ -137,7 +139,7 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
             <div className="flex items-center justify-between mb-4">
               <div
                 className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getPriorityColor(
-                  segment.segment_name
+                  segment.segment_name,
                 )} flex items-center justify-center text-white`}
               >
                 {getSegmentIcon(segment.segment_name)}
@@ -169,7 +171,10 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-400">Total Revenue</span>
                 <span className="text-white font-semibold">
-                  ${segment.total_revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  $
+                  {segment.total_revenue.toLocaleString(undefined, {
+                    maximumFractionDigits: 0,
+                  })}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -197,12 +202,12 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
               <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full bg-gradient-to-r ${getPriorityColor(
-                    segment.segment_name
+                    segment.segment_name,
                   )}`}
                   style={{
                     width: `${Math.min(
                       (segment.characteristics.avg_rfm_score / 555) * 100,
-                      100
+                      100,
                     )}%`,
                   }}
                 />
@@ -210,7 +215,10 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
             </div>
 
             {/* View Details */}
-            <button className="w-full py-2 px-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2">
+            <button
+              onClick={() => onViewCustomers?.(segment.segment_id)}
+              className="w-full py-2 px-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2"
+            >
               View Customers
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -279,7 +287,7 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
                       color: visualization.colors,
                     },
                     text: visualization.revenues.map(
-                      (v) => `$${(v / 1000).toFixed(1)}K`
+                      (v) => `$${(v / 1000).toFixed(1)}K`,
                     ),
                     textposition: "outside",
                   },
@@ -323,13 +331,15 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
             <div className="text-3xl font-bold text-cyan-400 mb-2">
-              {segments.find((s) => s.segment_name === "Champions")?.customer_count || 0}
+              {segments.find((s) => s.segment_name === "Champions")
+                ?.customer_count || 0}
             </div>
             <div className="text-sm text-gray-400">Champion Customers</div>
           </div>
           <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-red-500/20">
             <div className="text-3xl font-bold text-red-400 mb-2">
-              {segments.find((s) => s.segment_name === "At Risk")?.customer_count || 0}
+              {segments.find((s) => s.segment_name === "At Risk")
+                ?.customer_count || 0}
             </div>
             <div className="text-sm text-gray-400">At-Risk Customers</div>
           </div>
@@ -337,7 +347,9 @@ const CustomerSegments = ({ uploadId }: CustomerSegmentsProps) => {
             <div className="text-3xl font-bold text-green-400 mb-2">
               {segments.reduce((sum, s) => sum + s.customer_count, 0)}
             </div>
-            <div className="text-sm text-gray-400">Total Customers Analyzed</div>
+            <div className="text-sm text-gray-400">
+              Total Customers Analyzed
+            </div>
           </div>
         </div>
       </motion.div>

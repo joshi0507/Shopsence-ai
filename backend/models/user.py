@@ -239,6 +239,19 @@ class User:
         )
         return result.modified_count > 0
     
+    def delete(self, user_id: str) -> bool:
+        """
+        Permanently delete user account.
+        
+        Args:
+            user_id: User ObjectId as string.
+        
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        result = self.collection.delete_one({'_id': ObjectId(user_id)})
+        return result.deleted_count > 0
+    
     def verify_email(self, user_id: str) -> bool:
         """
         Mark user email as verified.

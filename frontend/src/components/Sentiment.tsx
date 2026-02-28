@@ -1,8 +1,15 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
-import { ThumbsUp, ThumbsDown, Heart, Star, MessageCircle } from "lucide-react";
-import { SentimentOverview, CategorySentiment, Keyword } from "../lib/api";
-import Plot from "react-plotly.js";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Heart,
+  Star,
+  MessageCircle,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { api, SentimentOverview, CategorySentiment, Keyword } from "../lib/api";
 
 interface SentimentProps {
   uploadId?: string;
@@ -62,14 +69,54 @@ const DEMO_CATEGORIES: CategorySentiment[] = [
 ];
 
 const Sentiment = ({ uploadId }: SentimentProps) => {
-  const [overview] = useState<SentimentOverview | null>(DEMO_OVERVIEW);
-  const [byCategory] = useState<CategorySentiment[]>(DEMO_CATEGORIES);
-  const [keywords] = useState<{
+  const [overview, setOverview] = useState<SentimentOverview | null>(
+    DEMO_OVERVIEW,
+  );
+  const [byCategory, setByCategory] =
+    useState<CategorySentiment[]>(DEMO_CATEGORIES);
+  const [keywords, setKeywords] = useState<{
     positive_keywords: Keyword[];
     negative_keywords: Keyword[];
   } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!uploadId) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        const [overviewRes, categoryRes, keywordRes] = await Promise.all([
+          api.getSentimentOverview(uploadId),
+          api.getSentimentByCategory(uploadId),
+          api.getSentimentKeywords(uploadId),
+        ]);
+
+        if (overviewRes.success && overviewRes.data) {
+          setOverview((overviewRes.data as any).overview || overviewRes.data);
+        }
+        if (categoryRes.success && categoryRes.data) {
+          setByCategory(
+            (categoryRes.data as any).categories || categoryRes.data,
+          );
+        }
+        if (keywordRes.success && keywordRes.data) {
+          setKeywords(keywordRes.data);
+        }
+      } catch (e) {
+        console.error("Sentiment fetch error:", e);
+        setError("Failed to fetch sentiment analysis");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [uploadId]);
 
   return (
     <section
@@ -112,202 +159,273 @@ const Sentiment = ({ uploadId }: SentimentProps) => {
           </p>
         </motion.div>
 
-        {/* Sentiment Gauge and Distribution */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Sentiment Gauge */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="glass-card rounded-2xl p-6 sm:p-8"
-          >
-            <h3 className="text-xl font-bold text-white mb-6 text-center">
-              Overall Sentiment Score
-            </h3>
-            <div className="relative w-64 h-32 mx-auto">
-              {/* Gauge SVG */}
-              <svg viewBox="0 0 200 120" className="w-full h-full">
-                <defs>
-                  <linearGradient
-                    id="gaugeGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
-                    <stop offset="0%" stopColor="#FF6D6D" />
-                    <stop offset="50%" stopColor="#FF9E6D" />
-                    <stop offset="100%" stopColor="#FFD0B8" />
-                  </linearGradient>
-                </defs>
-
-                {/* Background arc */}
-                <path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                />
-
-                {/* Active arc */}
-                <motion.path
-                  d="M 20 100 A 80 80 0 0 1 180 100"
-                  fill="none"
-                  stroke="url(#gaugeGradient)"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: overview.overall_score / 100 }}
-                  transition={{ duration: 2, ease: "easeOut" }}
-                />
-              </svg>
-
-              {/* Score display */}
-              <motion.div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                <div className="text-4xl font-bold gradient-text">
-                  {overview.overall_score.toFixed(0)}%
-                </div>
-                <div className="text-xs text-gray-400">Positive Sentiment</div>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Distribution */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="glass-card rounded-2xl p-6 sm:p-8"
-          >
-            <h3 className="text-xl font-bold text-white mb-6 text-center">
-              Sentiment Distribution
-            </h3>
-            <div className="space-y-4">
-              {/* Positive */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-green-400">
-                    <ThumbsUp className="w-5 h-5" />
-                    <span className="font-medium">Positive</span>
-                  </div>
-                  <span className="text-white font-semibold">
-                    {overview.percentages.positive.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-green-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${overview.percentages.positive}%` }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  {overview.distribution.positive} reviews
-                </div>
-              </div>
-
-              {/* Neutral */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-yellow-400">
-                    <Star className="w-5 h-5" />
-                    <span className="font-medium">Neutral</span>
-                  </div>
-                  <span className="text-white font-semibold">
-                    {overview.percentages.neutral.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-yellow-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${overview.percentages.neutral}%` }}
-                    transition={{ duration: 1, delay: 0.7 }}
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  {overview.distribution.neutral} reviews
-                </div>
-              </div>
-
-              {/* Negative */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-red-400">
-                    <ThumbsDown className="w-5 h-5" />
-                    <span className="font-medium">Negative</span>
-                  </div>
-                  <span className="text-white font-semibold">
-                    {overview.percentages.negative.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-red-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${overview.percentages.negative}%` }}
-                    transition={{ duration: 1, delay: 0.9 }}
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  {overview.distribution.negative} reviews
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Category Sentiment */}
-        {byCategory.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="glass-card rounded-2xl p-6 sm:p-8 mb-8"
-          >
-            <h3 className="text-xl font-bold text-white mb-6">
-              Sentiment by Category
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {byCategory.map((category, index) => (
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-[#FF6D6D] mb-4" />
+            <p className="text-gray-400">Analyzing customer sentiment...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 glass rounded-2xl border border-red-500/20">
+            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+            <p className="text-white font-medium">{error}</p>
+          </div>
+        ) : (
+          overview && (
+            <>
+              {/* Sentiment Gauge and Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                {/* Sentiment Gauge */}
                 <motion.div
-                  key={category.category}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="p-4 rounded-xl bg-white/5 border border-white/10"
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="glass-card rounded-2xl p-6 sm:p-8"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-white">
-                      {category.category}
-                    </span>
-                    <span
-                      className={`text-sm px-2 py-1 rounded-full ${
-                        category.sentiment_score >= 70
-                          ? "bg-green-500/20 text-green-400"
-                          : category.sentiment_score >= 50
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : "bg-red-500/20 text-red-400"
-                      }`}
+                  <h3 className="text-xl font-bold text-white mb-6 text-center">
+                    Overall Sentiment Score
+                  </h3>
+                  <div className="relative w-64 h-32 mx-auto">
+                    {/* Gauge SVG */}
+                    <svg viewBox="0 0 200 120" className="w-full h-full">
+                      <defs>
+                        <linearGradient
+                          id="gaugeGradient"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="0%"
+                        >
+                          <stop offset="0%" stopColor="#FF6D6D" />
+                          <stop offset="50%" stopColor="#FF9E6D" />
+                          <stop offset="100%" stopColor="#FFD0B8" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Background arc */}
+                      <path
+                        d="M 20 100 A 80 80 0 0 1 180 100"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                      />
+
+                      {/* Active arc */}
+                      <motion.path
+                        d="M 20 100 A 80 80 0 0 1 180 100"
+                        fill="none"
+                        stroke="url(#gaugeGradient)"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: overview.overall_score / 100 }}
+                        transition={{ duration: 2, ease: "easeOut" }}
+                      />
+                    </svg>
+
+                    {/* Score display */}
+                    <motion.div
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
                     >
-                      {category.sentiment_score.toFixed(0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-gray-400">
-                    <span>Avg Rating: {category.avg_rating.toFixed(1)}</span>
-                    <span>{category.review_count} reviews</span>
+                      <div className="text-4xl font-bold gradient-text">
+                        {overview.overall_score.toFixed(0)}%
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Positive Sentiment
+                      </div>
+                    </motion.div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
-          </motion.div>
+
+                {/* Distribution */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className="glass-card rounded-2xl p-6 sm:p-8"
+                >
+                  <h3 className="text-xl font-bold text-white mb-6 text-center">
+                    Sentiment Distribution
+                  </h3>
+                  <div className="space-y-4">
+                    {/* Positive */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-green-400">
+                          <ThumbsUp className="w-5 h-5" />
+                          <span className="font-medium">Positive</span>
+                        </div>
+                        <span className="text-white font-semibold">
+                          {overview.percentages.positive.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-green-500"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${overview.percentages.positive}%`,
+                          }}
+                          transition={{ duration: 1, delay: 0.5 }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {overview.distribution.positive} reviews
+                      </div>
+                    </div>
+
+                    {/* Neutral */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-yellow-400">
+                          <Star className="w-5 h-5" />
+                          <span className="font-medium">Neutral</span>
+                        </div>
+                        <span className="text-white font-semibold">
+                          {overview.percentages.neutral.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-yellow-500"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${overview.percentages.neutral}%`,
+                          }}
+                          transition={{ duration: 1, delay: 0.7 }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {overview.distribution.neutral} reviews
+                      </div>
+                    </div>
+
+                    {/* Negative */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-red-400">
+                          <ThumbsDown className="w-5 h-5" />
+                          <span className="font-medium">Negative</span>
+                        </div>
+                        <span className="text-white font-semibold">
+                          {overview.percentages.negative.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-red-500"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${overview.percentages.negative}%`,
+                          }}
+                          transition={{ duration: 1, delay: 0.9 }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {overview.distribution.negative} reviews
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Keywords Section */}
+              {keywords && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass-card p-6 rounded-2xl border border-green-500/10"
+                  >
+                    <h4 className="text-green-400 font-bold mb-4 flex items-center gap-2">
+                      <ThumbsUp className="w-4 h-4" /> Key Praises
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {keywords.positive_keywords.map((kw, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-300 rounded-full text-sm"
+                        >
+                          {kw.text} ({kw.count})
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass-card p-6 rounded-2xl border border-red-500/10"
+                  >
+                    <h4 className="text-red-400 font-bold mb-4 flex items-center gap-2">
+                      <ThumbsDown className="w-4 h-4" /> Top Complaints
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {keywords.negative_keywords.map((kw, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-300 rounded-full text-sm"
+                        >
+                          {kw.text} ({kw.count})
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+
+              {/* Category Sentiment */}
+              {byCategory.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="glass-card rounded-2xl p-6 sm:p-8 mb-8"
+                >
+                  <h3 className="text-xl font-bold text-white mb-6">
+                    Sentiment by Category
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {byCategory.map((category, index) => (
+                      <motion.div
+                        key={category.category}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={isInView ? { opacity: 1, y: 0 } : {}}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="p-4 rounded-xl bg-white/5 border border-white/10"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-white">
+                            {category.category}
+                          </span>
+                          <span
+                            className={`text-sm px-2 py-1 rounded-full ${
+                              category.sentiment_score >= 70
+                                ? "bg-green-500/20 text-green-400"
+                                : category.sentiment_score >= 50
+                                  ? "bg-yellow-500/20 text-yellow-400"
+                                  : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {category.sentiment_score.toFixed(0)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-gray-400">
+                          <span>
+                            Avg Rating: {category.avg_rating.toFixed(1)}
+                          </span>
+                          <span>{category.review_count} reviews</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </>
+          )
         )}
 
         {/* Stats row */}

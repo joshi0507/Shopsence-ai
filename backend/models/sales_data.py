@@ -61,11 +61,12 @@ class SalesData:
             processed_record = {
                 'user_id': ObjectId(user_id),
                 'upload_id': upload_id,
+                'customer_id': str(record.get('customer_id', 'Unknown')),
                 'product_name': record.get('product_name', ''),
                 'date': self._parse_date(record.get('date')),
                 'units_sold': units,
                 'price': price,
-                'revenue': units * price,  # Fixed: correct revenue calculation
+                'revenue': units * price,
                 'category': record.get('category', 'Uncategorized'),
                 'created_at': datetime.utcnow()
             }
@@ -73,6 +74,30 @@ class SalesData:
         
         result = self.collection.insert_many(records)
         return len(result.inserted_ids)
+
+    def get_total_customers(self, user_id: str, upload_id: Optional[str] = None) -> int:
+        """
+        Get total unique customers count.
+        
+        Args:
+            user_id: User ObjectId as string.
+            upload_id: Optional upload session ID to filter.
+            
+        Returns:
+            int: Number of unique customer IDs.
+        """
+        match_stage = {'user_id': ObjectId(user_id)}
+        if upload_id:
+            match_stage['upload_id'] = upload_id
+            
+        pipeline = [
+            {'$match': match_stage},
+            {'$group': {'_id': '$customer_id'}},
+            {'$count': 'count'}
+        ]
+        
+        result = list(self.collection.aggregate(pipeline))
+        return result[0]['count'] if result else 0
     
     def find_by_upload_id(self, upload_id: str) -> List[Dict[str, Any]]:
         """

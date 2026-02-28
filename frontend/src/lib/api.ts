@@ -92,6 +92,7 @@ export interface KPIData {
   total_revenue: number;
   total_units: number;
   total_products: number;
+  total_customers: number;
   avg_order_value: number;
   avg_price: number;
 }
@@ -545,10 +546,16 @@ class ShopSenseAPI {
     return this.request<User>("/auth/me");
   }
 
-  async updateProfile(updates: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request<User>("/auth/me", {
+  async updateProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {
+    return this.request("/auth/me", {
       method: "PUT",
-      body: JSON.stringify(updates),
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async deleteAccount(): Promise<ApiResponse<void>> {
+    return this.request("/auth/me", {
+      method: "DELETE",
     });
   }
 
@@ -638,9 +645,11 @@ class ShopSenseAPI {
     limit = 50,
     status?: string,
   ): Promise<ApiResponse<UploadSession[]>> {
-    const params = new URLSearchParams({ limit: limit.toString() });
+    const params = new URLSearchParams();
+    params.append("limit", limit.toString());
     if (status) params.append("status", status);
-    return this.request<UploadSession[]>(`/uploads?${params}`);
+
+    return this.request<UploadSession[]>(`/uploads?${params.toString()}`);
   }
 
   async getUpload(uploadId: string): Promise<ApiResponse<UploadSession>> {
@@ -648,7 +657,9 @@ class ShopSenseAPI {
   }
 
   async deleteUpload(uploadId: string): Promise<ApiResponse<void>> {
-    return this.request(`/uploads/${uploadId}`, { method: "DELETE" });
+    return this.request(`/uploads/${uploadId}`, {
+      method: "DELETE",
+    });
   }
 
   async getUploadData(uploadId: string): Promise<ApiResponse<any[]>> {
@@ -656,108 +667,7 @@ class ShopSenseAPI {
   }
 
   // -------------------------------------------------------------------------
-  // Analytics Endpoints
-  // -------------------------------------------------------------------------
-
-  async getSummary(params?: {
-    upload_id?: string;
-    start_date?: string;
-    end_date?: string;
-  }): Promise<
-    ApiResponse<{
-      product_analysis: ProductAnalysis;
-      trend_analysis: TrendAnalysis;
-      recommendations: Recommendation[];
-    }>
-  > {
-    const queryString = params ? new URLSearchParams(params).toString() : "";
-    return this.request(
-      `/analytics/summary${queryString ? `?${queryString}` : ""}`,
-    );
-  }
-
-  async getProducts(
-    uploadId?: string,
-    limit = 100,
-  ): Promise<
-    ApiResponse<{
-      products: ProductData[];
-      total_products: number;
-    }>
-  > {
-    const params = new URLSearchParams();
-    if (uploadId) params.append("upload_id", uploadId);
-    params.append("limit", limit.toString());
-    return this.request(`/analytics/products?${params}`);
-  }
-
-  async getTrends(uploadId?: string): Promise<
-    ApiResponse<{
-      trends: TrendData[];
-      data_points: number;
-    }>
-  > {
-    const params = new URLSearchParams();
-    if (uploadId) params.append("upload_id", uploadId);
-    return this.request(`/analytics/trends?${params}`);
-  }
-
-  async getForecast(
-    uploadId?: string,
-    periods = 30,
-  ): Promise<
-    ApiResponse<{
-      success: boolean;
-      forecast_period_days: number;
-      total_predicted_revenue: number;
-      avg_daily_revenue: number;
-      predictions: ForecastPrediction[];
-      model_info: {
-        algorithm: string;
-        trained_on: string;
-        trained_to: string;
-      };
-    }>
-  > {
-    const params = new URLSearchParams({ periods: periods.toString() });
-    if (uploadId) params.append("upload_id", uploadId);
-    return this.request(`/analytics/forecast?${params}`);
-  }
-
-  async getAIInsights(uploadId?: string): Promise<ApiResponse<AIInsights>> {
-    return this.request<AIInsights>("/analytics/insights", {
-      method: "POST",
-      body: JSON.stringify({ upload_id: uploadId }),
-    });
-  }
-
-  // -------------------------------------------------------------------------
-  // Dashboard Endpoints
-  // -------------------------------------------------------------------------
-
-  async getDashboard(uploadId?: string): Promise<ApiResponse<DashboardData>> {
-    const params = uploadId ? `?upload_id=${uploadId}` : "";
-    return this.request<DashboardData>(`/dashboard${params}`);
-  }
-
-  async getKPIs(uploadId?: string): Promise<ApiResponse<KPIData>> {
-    const params = uploadId ? `?upload_id=${uploadId}` : "";
-    return this.request<KPIData>(`/dashboard/kpis${params}`);
-  }
-
-  async getCharts(uploadId?: string): Promise<
-    ApiResponse<{
-      top_products: ProductData[];
-      low_products: ProductData[];
-      time_series: TrendData[];
-    }>
-  > {
-    const params = uploadId ? `?upload_id=${uploadId}` : "";
-    return this.request(`/dashboard/charts${params}`);
-  }
-
-  // -------------------------------------------------------------------------
-  // Behavior Analytics Endpoints
+  // Behavior Endpoints
   // -------------------------------------------------------------------------
 
   async getBehaviorSegments(uploadId?: string): Promise<
@@ -928,6 +838,112 @@ class ShopSenseAPI {
   > {
     const params = uploadId ? `?upload_id=${uploadId}` : "";
     return this.request(`/behavior/insights/summary${params}`);
+  }
+
+  // -------------------------------------------------------------------------
+  // Analytics Endpoints
+  // -------------------------------------------------------------------------
+
+  async getSummary(params?: {
+    upload_id?: string;
+    start_date?: string;
+    end_date?: string;
+  }): Promise<
+    ApiResponse<{
+      product_analysis: ProductAnalysis;
+      trend_analysis: TrendAnalysis;
+      recommendations: Recommendation[];
+    }>
+  > {
+    const queryString = params ? new URLSearchParams(params).toString() : "";
+    return this.request(
+      `/analytics/summary${queryString ? `?${queryString}` : ""}`,
+    );
+  }
+
+  async getProducts(
+    uploadId?: string,
+    limit = 100,
+  ): Promise<
+    ApiResponse<{
+      products: ProductData[];
+      total_products: number;
+    }>
+  > {
+    const params = new URLSearchParams();
+    if (uploadId) params.append("upload_id", uploadId);
+    params.append("limit", limit.toString());
+    return this.request(`/analytics/products?${params}`);
+  }
+
+  async getTrends(uploadId?: string): Promise<
+    ApiResponse<{
+      trends: TrendData[];
+      data_points: number;
+    }>
+  > {
+    const params = new URLSearchParams();
+    if (uploadId) params.append("upload_id", uploadId);
+    return this.request(`/analytics/trends?${params}`);
+  }
+
+  async getForecast(
+    uploadId?: string,
+    periods = 30,
+  ): Promise<
+    ApiResponse<{
+      success: boolean;
+      forecast_period_days: number;
+      total_predicted_revenue: number;
+      avg_daily_revenue: number;
+      predictions: ForecastPrediction[];
+      model_info: {
+        algorithm: string;
+        trained_on: string;
+        trained_to: string;
+      };
+    }>
+  > {
+    const params = new URLSearchParams({ periods: periods.toString() });
+    if (uploadId) params.append("upload_id", uploadId);
+    return this.request(`/analytics/forecast?${params}`);
+  }
+
+  async getAIInsights(uploadId?: string): Promise<ApiResponse<AIInsights>> {
+    return this.request<AIInsights>("/analytics/insights", {
+      method: "POST",
+      body: JSON.stringify({ upload_id: uploadId }),
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Dashboard Endpoints
+  // -------------------------------------------------------------------------
+
+  async getDashboard(uploadId?: string): Promise<ApiResponse<DashboardData>> {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request<DashboardData>(`/dashboard${params}`);
+  }
+
+  async getKPIs(uploadId?: string): Promise<ApiResponse<KPIData>> {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request<KPIData>(`/dashboard/kpis${params}`);
+  }
+
+  async getCharts(uploadId?: string): Promise<
+    ApiResponse<{
+      top_products: ProductData[];
+      low_products: ProductData[];
+      time_series: TrendData[];
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/dashboard/charts${params}`);
+  }
+
+  async getTips(uploadId?: string): Promise<ApiResponse<any[]>> {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request<any[]>(`/behavior/tips${params}`);
   }
 
   // -------------------------------------------------------------------------

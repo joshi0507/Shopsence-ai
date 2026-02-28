@@ -109,6 +109,7 @@ def get_dashboard_data():
         total_revenue = float(product_df['revenue'].sum())
         total_units = int(product_df['units_sold'].sum())
         total_products = len(product_df)
+        total_customers = sales_model.get_total_customers(g.current_user['user_id'], upload_id)
         avg_order_value = total_revenue / total_units if total_units > 0 else 0
         
         return jsonify({
@@ -119,6 +120,7 @@ def get_dashboard_data():
                     'total_revenue': round(total_revenue, 2),
                     'total_units': total_units,
                     'total_products': total_products,
+                    'total_customers': total_customers,
                     'avg_order_value': round(avg_order_value, 2),
                     'avg_price': round(float(product_df['price'].mean()), 2)
                 },
@@ -171,6 +173,7 @@ def get_kpis():
                     'total_revenue': 0,
                     'total_units': 0,
                     'total_products': 0,
+                    'total_customers': 0,
                     'avg_order_value': 0,
                     'avg_price': 0
                 }
@@ -179,6 +182,7 @@ def get_kpis():
         total_revenue = float(product_df['revenue'].sum())
         total_units = int(product_df['units_sold'].sum())
         total_products = len(product_df)
+        total_customers = sales_model.get_total_customers(g.current_user['user_id'], upload_id)
         avg_order_value = total_revenue / total_units if total_units > 0 else 0
         avg_price = float(product_df['price'].mean())
         
@@ -188,6 +192,7 @@ def get_kpis():
                 'total_revenue': round(total_revenue, 2),
                 'total_units': total_units,
                 'total_products': total_products,
+                'total_customers': total_customers,
                 'avg_order_value': round(avg_order_value, 2),
                 'avg_price': round(avg_price, 2)
             }

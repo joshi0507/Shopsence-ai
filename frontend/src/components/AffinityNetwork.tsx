@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
-import { AffinityNode, AffinityLink } from "../lib/api";
+import { api, AffinityNode, AffinityLink, AffinityResponse } from "../lib/api";
 import Plot from "react-plotly.js";
+import { Loader2, AlertCircle } from "lucide-react";
 
 interface AffinityNetworkProps {
   uploadId?: string;
@@ -179,10 +180,40 @@ const DEMO_LINKS: AffinityLink[] = [
 ];
 
 const AffinityNetwork = ({ uploadId }: AffinityNetworkProps) => {
-  const [nodes] = useState<AffinityNode[]>(DEMO_NODES);
-  const [links] = useState<AffinityLink[]>(DEMO_LINKS);
+  const [nodes, setNodes] = useState<AffinityNode[]>(DEMO_NODES);
+  const [links, setLinks] = useState<AffinityLink[]>(DEMO_LINKS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!uploadId) return;
+
+      setLoading(true);
+      setError(null);
+      // Clear demo data when fetching real data
+      setNodes([]);
+      setLinks([]);
+      try {
+        const res = await api.getAffinityNetwork(uploadId);
+        if (res.success && res.data) {
+          setNodes(res.data.nodes || []);
+          setLinks(res.data.links || []);
+        } else {
+          setError(res.error?.message || "Failed to load affinity network");
+        }
+      } catch (e) {
+        console.error("Affinity fetch error:", e);
+        setError("Failed to fetch affinity analysis");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [uploadId]);
 
   // Prepare data for Plotly network visualization
   const edgeX: number[] = [];
@@ -292,8 +323,20 @@ const AffinityNetwork = ({ uploadId }: AffinityNetworkProps) => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="glass-card rounded-2xl p-4 sm:p-8 relative"
+          className="glass-card rounded-2xl p-4 sm:p-8 relative min-h-[500px]"
         >
+          {loading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/50 backdrop-blur-sm z-20 rounded-2xl">
+              <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mb-4" />
+              <p className="text-gray-400">Mapping product affinities...</p>
+            </div>
+          ) : error ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/50 backdrop-blur-sm z-20 rounded-2xl">
+              <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+              <p className="text-white font-medium">{error}</p>
+            </div>
+          ) : null}
+
           <Plot
             data={[
               // Edges
