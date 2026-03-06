@@ -45,7 +45,7 @@ def format_response(
     """
     response = {
         'success': success,
-        'timestamp': datetime.utcnow().isoformat() + 'Z'
+        'timestamp': datetime.utcnow().isoformat()
     }
     
     if data is not None:

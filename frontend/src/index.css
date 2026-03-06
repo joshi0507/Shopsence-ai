@@ -6,35 +6,80 @@
 
 @layer base {
   :root {
-    --background: 226 36% 10%;
-    --foreground: 210 10% 96%;
-    --card: 240 4% 19%;
-    --card-foreground: 210 10% 96%;
-    --popover: 226 36% 12%;
-    --popover-foreground: 210 10% 96%;
-    --primary: 19 100% 71%;
-    --primary-foreground: 226 36% 10%;
-    --secondary: 240 5% 25%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 226 36% 20%;
-    --muted-foreground: 226 10% 70%;
-    --accent: 19 100% 71%;
+    /* Light Mode (Default) */
+    --background: 226 36% 98%;
+    --foreground: 226 36% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 226 36% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 226 36% 10%;
+    --primary: 19 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 226 20% 90%;
+    --secondary-foreground: 226 36% 20%;
+    --muted: 226 20% 90%;
+    --muted-foreground: 226 10% 40%;
+    --accent: 19 100% 56%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 226 36% 20%;
-    --input: 226 36% 20%;
-    --ring: 19 100% 71%;
+    --border: 226 20% 85%;
+    --input: 226 20% 85%;
+    --ring: 19 100% 56%;
     --radius: 1rem;
+
+    /* Dark Mode */
+    --background-dark: 226 36% 10%;
+    --foreground-dark: 210 10% 96%;
+    --card-dark: 240 4% 19%;
+    --card-foreground-dark: 210 10% 96%;
+    --popover-dark: 226 36% 12%;
+    --popover-foreground-dark: 210 10% 96%;
+    --primary-dark: 19 100% 71%;
+    --primary-foreground-dark: 226 36% 10%;
+    --secondary-dark: 240 5% 25%;
+    --secondary-foreground-dark: 0 0% 100%;
+    --muted-dark: 226 36% 20%;
+    --muted-foreground-dark: 226 10% 70%;
+    --accent-dark: 19 100% 71%;
+    --accent-foreground-dark: 0 0% 100%;
+    --destructive-dark: 0 62.8% 30.6%;
+    --destructive-foreground-dark: 0 0% 100%;
+    --border-dark: 226 36% 20%;
+    --input-dark: 226 36% 20%;
+    --ring-dark: 19 100% 71%;
+  }
+
+  /* Dark mode class applied to body */
+  body.dark-mode {
+    --background: var(--background-dark);
+    --foreground: var(--foreground-dark);
+    --card: var(--card-dark);
+    --card-foreground: var(--card-foreground-dark);
+    --popover: var(--popover-dark);
+    --popover-foreground: var(--popover-foreground-dark);
+    --primary: var(--primary-dark);
+    --primary-foreground: var(--primary-foreground-dark);
+    --secondary: var(--secondary-dark);
+    --secondary-foreground: var(--secondary-foreground-dark);
+    --muted: var(--muted-dark);
+    --muted-foreground: var(--muted-foreground-dark);
+    --accent: var(--accent-dark);
+    --accent-foreground: var(--accent-foreground-dark);
+    --destructive: var(--destructive-dark);
+    --destructive-foreground: var(--destructive-foreground-dark);
+    --border: var(--border-dark);
+    --input: var(--input-dark);
+    --ring: var(--ring-dark);
   }
 
   * {
     border-color: hsl(var(--border));
-    /* cursor: none; */ /* Removing custom cursor for better default UX unless explicitly requested */
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
 
   body {
-    background-color: #1a2238;
+    background-color: hsl(var(--background));
     background-image:
       radial-gradient(
         circle at 50% 30%,
@@ -48,10 +93,25 @@
       ),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     background-attachment: fixed;
+    position: relative;
     color: hsl(var(--foreground));
     font-family: "DM Sans", sans-serif;
     overflow-x: hidden;
-    /* cursor: none; */
+  }
+
+  body.light-mode {
+    background-color: #f0f2f5;
+    background-image:
+      radial-gradient(
+        circle at 50% 30%,
+        rgba(255, 158, 109, 0.08),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(255, 109, 109, 0.05),
+        transparent 40%
+      );
   }
 
   h1,

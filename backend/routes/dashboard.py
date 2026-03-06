@@ -14,7 +14,7 @@ from services.analytics_service import AnalyticsService
 from services.forecast_service import ForecastService
 from routes.auth import jwt_required
 
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
+dashboard_bp = Blueprint('dashboard', __name__)
 
 
 def get_sales_data_model():
@@ -109,6 +109,7 @@ def get_dashboard_data():
         total_revenue = float(product_df['revenue'].sum())
         total_units = int(product_df['units_sold'].sum())
         total_products = len(product_df)
+        total_customers = sales_model.get_total_customers(g.current_user['user_id'], upload_id)
         avg_order_value = total_revenue / total_units if total_units > 0 else 0
         
         return jsonify({
@@ -119,6 +120,7 @@ def get_dashboard_data():
                     'total_revenue': round(total_revenue, 2),
                     'total_units': total_units,
                     'total_products': total_products,
+                    'total_customers': total_customers,
                     'avg_order_value': round(avg_order_value, 2),
                     'avg_price': round(float(product_df['price'].mean()), 2)
                 },
@@ -171,6 +173,7 @@ def get_kpis():
                     'total_revenue': 0,
                     'total_units': 0,
                     'total_products': 0,
+                    'total_customers': 0,
                     'avg_order_value': 0,
                     'avg_price': 0
                 }
@@ -179,6 +182,7 @@ def get_kpis():
         total_revenue = float(product_df['revenue'].sum())
         total_units = int(product_df['units_sold'].sum())
         total_products = len(product_df)
+        total_customers = sales_model.get_total_customers(g.current_user['user_id'], upload_id)
         avg_order_value = total_revenue / total_units if total_units > 0 else 0
         avg_price = float(product_df['price'].mean())
         
@@ -188,6 +192,7 @@ def get_kpis():
                 'total_revenue': round(total_revenue, 2),
                 'total_units': total_units,
                 'total_products': total_products,
+                'total_customers': total_customers,
                 'avg_order_value': round(avg_order_value, 2),
                 'avg_price': round(avg_price, 2)
             }
@@ -209,22 +214,33 @@ def get_charts():
     
     Query Params:
         upload_id (str, optional): Filter by specific upload
+        days (int, optional): Number of days to filter (default: all time)
     
     Returns:
         JSON: Chart datasets
     """
     try:
         upload_id = request.args.get('upload_id')
+        days = request.args.get('days', type=int)
         
         sales_model = get_sales_data_model()
         product_df = sales_model.get_product_summary(g.current_user['user_id'], upload_id)
         daily_df = sales_model.get_daily_sales(g.current_user['user_id'], upload_id)
         
-        if product_df.empty:
+        if daily_df.empty:
             return jsonify({
                 'success': True,
                 'data': {}
             })
+        
+        # Filter by days if specified
+        if days and days > 0:
+            daily_df['date'] = pd.to_datetime(daily_df['date'])
+            cutoff_date = daily_df['date'].max() - pd.Timedelta(days=days-1)
+            daily_df = daily_df[daily_df['date'] >= cutoff_date]
+            daily_df['date'] = daily_df['date'].dt.strftime('%Y-%m-%d')
+        else:
+            daily_df['date'] = pd.to_datetime(daily_df['date']).dt.strftime('%Y-%m-%d')
         
         # Top products
         top_products = product_df.nlargest(10, 'units_sold').to_dict('records')
@@ -241,7 +257,6 @@ def get_charts():
             item['revenue'] = float(item['revenue'])
         
         # Time series
-        daily_df['date'] = pd.to_datetime(daily_df['date']).dt.strftime('%Y-%m-%d')
         time_series = daily_df.to_dict('records')
         for item in time_series:
             item['units_sold'] = int(item['units_sold'])

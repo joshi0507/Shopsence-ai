@@ -10,6 +10,9 @@ import numpy as np
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
+# Use fixed seed for reproducible forecasts
+np.random.seed(42)
+
 try:
     from prophet import Prophet
     PROPHET_AVAILABLE = True

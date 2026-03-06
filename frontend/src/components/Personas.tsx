@@ -1,27 +1,59 @@
-import { useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, Clock, Star, ChevronRight } from "lucide-react";
+import {
+  User,
+  ShoppingBag,
+  Clock,
+  Star,
+  ChevronRight,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { api, Persona } from "../lib/api";
 
-interface Persona {
-  id: number;
-  name: string;
-  role: string;
-  avatar: string;
-  description: string;
-  behaviors: { icon: React.ReactNode; label: string; value: string }[];
-  color: string;
+interface PersonasProps {
+  uploadId?: string;
+}
+
+interface PersonaBehavior {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}
+
+interface ExtendedPersona extends Persona {
+  behaviors: PersonaBehavior[];
 }
 
 const PersonaCard = ({
   persona,
   index,
 }: {
-  persona: Persona;
+  persona: ExtendedPersona;
   index: number;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+
+  // Map API behavior to UI behaviors if not already present
+  const displayBehaviors = persona.behaviors || [
+    {
+      icon: <ShoppingBag size={14} />,
+      label: "Avg. Order",
+      value: `$${persona.behavior.avg_order_value.toFixed(2)}`,
+    },
+    {
+      icon: <Clock size={14} />,
+      label: "Purchase Freq.",
+      value: persona.behavior.purchase_frequency,
+    },
+    {
+      icon: <Star size={14} />,
+      label: "RFM Score",
+      value: persona.behavior.avg_rfm_score.toString(),
+    },
+  ];
 
   return (
     <motion.div
@@ -62,7 +94,7 @@ const PersonaCard = ({
           >
             <div className="w-full h-full rounded-full bg-void flex items-center justify-center">
               <span className="text-2xl font-bold text-white">
-                {persona.name[0]}
+                {persona.avatar_initials}
               </span>
             </div>
           </div>
@@ -91,7 +123,7 @@ const PersonaCard = ({
               transition={{ duration: 0.3 }}
               className="space-y-2"
             >
-              {persona.behaviors.map((behavior, i) => (
+              {displayBehaviors.map((behavior, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between text-sm"
@@ -111,6 +143,31 @@ const PersonaCard = ({
           )}
         </AnimatePresence>
 
+        {/* Stats */}
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Customers</span>
+            <span className="text-white font-semibold">
+              {persona.behavior.total_customers}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Avg Order</span>
+            <span className="text-white font-semibold">
+              ${persona.behavior.avg_order_value.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Revenue</span>
+            <span className="text-white font-semibold">
+              $
+              {persona.behavior.total_revenue.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
+            </span>
+          </div>
+        </div>
+
         {/* View details link */}
         <motion.div
           className="flex items-center gap-1 mt-4 text-sm font-medium"
@@ -125,68 +182,169 @@ const PersonaCard = ({
   );
 };
 
-const Personas = () => {
+const DEMO_PERSONAS: ExtendedPersona[] = [
+  {
+    persona_id: "demo-1",
+    name: "Sarah the Explorer",
+    role: "Trend-Seeker",
+    description:
+      "Loves discovering new products and is always first to try the latest trends. High engagement, moderate spend.",
+    avatar_initials: "SE",
+    color: "#FF9E6D",
+    demographics: { age_range: "25-34", gender_split: { Female: 100 }, top_locations: { Urban: 100 } },
+    behavior: {
+      total_customers: 1240,
+      avg_order_value: 87.5,
+      purchase_frequency: "Weekly",
+      avg_rfm_score: 82,
+      total_revenue: 108500,
+      avg_recency: 5.2,
+    },
+    preferences: {
+      top_categories: ["Clothing", "Accessories"],
+      preferred_payment: "Credit Card",
+      discount_sensitivity: "Low",
+    },
+    behaviors: [
+      { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$87.50" },
+      { icon: <Clock size={14} />, label: "Purchase Freq.", value: "Weekly" },
+      { icon: <Star size={14} />, label: "RFM Score", value: "82" },
+    ],
+  },
+  {
+    persona_id: "demo-2",
+    name: "Mark the Loyalist",
+    role: "Brand Advocate",
+    description:
+      "Returns consistently, refers friends, and responds well to loyalty programs. Your most valuable customer.",
+    avatar_initials: "ML",
+    color: "#FF6D6D",
+    demographics: { age_range: "35-44", gender_split: { Male: 100 }, top_locations: { Suburban: 100 } },
+    behavior: {
+      total_customers: 876,
+      avg_order_value: 142.0,
+      purchase_frequency: "Bi-weekly",
+      avg_rfm_score: 95,
+      total_revenue: 224400,
+      avg_recency: 12.5,
+    },
+    preferences: {
+      top_categories: ["Electronics", "Home"],
+      preferred_payment: "PayPal",
+      discount_sensitivity: "Very Low",
+    },
+    behaviors: [
+      {
+        icon: <ShoppingBag size={14} />,
+        label: "Avg. Order",
+        value: "$142.00",
+      },
+      {
+        icon: <Clock size={14} />,
+        label: "Purchase Freq.",
+        value: "Bi-weekly",
+      },
+      { icon: <Star size={14} />, label: "RFM Score", value: "95" },
+    ],
+  },
+  {
+    persona_id: "demo-3",
+    name: "Priya the Bargain Hunter",
+    role: "Deal-Driven Shopper",
+    description:
+      "Highly price-sensitive, shops during sales. High volume buyer when discounts are available.",
+    avatar_initials: "PB",
+    color: "#FFD0B8",
+    demographics: { age_range: "18-24", gender_split: { Female: 100 }, top_locations: { Urban: 100 } },
+    behavior: {
+      total_customers: 2150,
+      avg_order_value: 38.9,
+      purchase_frequency: "Monthly",
+      avg_rfm_score: 61,
+      total_revenue: 167800,
+      avg_recency: 28.3,
+    },
+    preferences: {
+      top_categories: ["Clothing", "Footwear"],
+      preferred_payment: "Debit Card",
+      discount_sensitivity: "Very High",
+    },
+    behaviors: [
+      { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$38.90" },
+      { icon: <Clock size={14} />, label: "Purchase Freq.", value: "Monthly" },
+      { icon: <Star size={14} />, label: "RFM Score", value: "61" },
+    ],
+  },
+  {
+    persona_id: "demo-4",
+    name: "David the Researcher",
+    role: "Considered Buyer",
+    description:
+      "Takes time to evaluate before purchasing. High average order value, reads reviews carefully before committing.",
+    avatar_initials: "DR",
+    color: "#A78BFA",
+    demographics: { age_range: "45-54", gender_split: { Male: 100 }, top_locations: { Suburban: 100 } },
+    behavior: {
+      total_customers: 640,
+      avg_order_value: 218.5,
+      purchase_frequency: "Quarterly",
+      avg_rfm_score: 74,
+      total_revenue: 279680,
+      avg_recency: 45.0,
+    },
+    preferences: {
+      top_categories: ["Electronics", "Sports"],
+      preferred_payment: "Credit Card",
+      discount_sensitivity: "Medium",
+    },
+    behaviors: [
+      {
+        icon: <ShoppingBag size={14} />,
+        label: "Avg. Order",
+        value: "$218.50",
+      },
+      {
+        icon: <Clock size={14} />,
+        label: "Purchase Freq.",
+        value: "Quarterly",
+      },
+      { icon: <Star size={14} />, label: "RFM Score", value: "74" },
+    ],
+  },
+];
+
+const Personas = ({ uploadId }: PersonasProps) => {
+  const [personas, setPersonas] = useState<ExtendedPersona[]>(DEMO_PERSONAS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
-  const personas: Persona[] = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      role: "Fashion Enthusiast",
-      avatar: "SC",
-      description:
-        "Premium shopper who values unique, statement pieces. Highly responsive to limited editions and exclusive drops.",
-      behaviors: [
-        { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$342" },
-        { icon: <Clock size={14} />, label: "Purchase Freq.", value: "2.4/mo" },
-        { icon: <Star size={14} />, label: "Loyalty Score", value: "94%" },
-      ],
-      color: "#00F0FF",
-    },
-    {
-      id: 2,
-      name: "Marcus Johnson",
-      role: "Value Hunter",
-      avatar: "MJ",
-      description:
-        "Price-conscious buyer who researches thoroughly before purchasing. Responds well to discounts and bundles.",
-      behaviors: [
-        { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$127" },
-        { icon: <Clock size={14} />, label: "Purchase Freq.", value: "1.8/mo" },
-        { icon: <Star size={14} />, label: "Loyalty Score", value: "78%" },
-      ],
-      color: "#7000FF",
-    },
-    {
-      id: 3,
-      name: "Emma Rodriguez",
-      role: "Trend Setter",
-      avatar: "ER",
-      description:
-        "Early adopter who actively shares reviews and influences her network. High social media engagement.",
-      behaviors: [
-        { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$289" },
-        { icon: <Clock size={14} />, label: "Purchase Freq.", value: "3.2/mo" },
-        { icon: <Star size={14} />, label: "Loyalty Score", value: "91%" },
-      ],
-      color: "#FF00AA",
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      role: "Tech Savvy",
-      avatar: "DK",
-      description:
-        "Research-driven purchaser focused on specifications and reviews. Values detailed product information.",
-      behaviors: [
-        { icon: <ShoppingBag size={14} />, label: "Avg. Order", value: "$456" },
-        { icon: <Clock size={14} />, label: "Purchase Freq.", value: "1.5/mo" },
-        { icon: <Star size={14} />, label: "Loyalty Score", value: "85%" },
-      ],
-      color: "#0066FF",
-    },
-  ];
+  useEffect(() => {
+    const fetchPersonas = async () => {
+      if (!uploadId) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.getPersonas(uploadId);
+        if (res.success && res.data) {
+          // The API returns { personas: Persona[], total_personas: number }
+          const personasData = (res.data as any).personas || res.data;
+          setPersonas(personasData as ExtendedPersona[]);
+        } else {
+          setError(res.error?.message || "Failed to load personas");
+        }
+      } catch (e) {
+        console.error("Personas fetch error:", e);
+        setError("Failed to fetch data from API");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPersonas();
+  }, [uploadId]);
 
   return (
     <section
@@ -228,12 +386,34 @@ const Personas = () => {
           </p>
         </motion.div>
 
-        {/* Persona cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {personas.map((persona, index) => (
-            <PersonaCard key={persona.id} persona={persona} index={index} />
-          ))}
-        </div>
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mb-4" />
+            <p className="text-gray-400">Discovering customer patterns...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 glass rounded-2xl border border-red-500/20">
+            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+            <p className="text-white font-medium">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-sm transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {personas.map((persona, index) => (
+              <PersonaCard
+                key={persona.persona_id}
+                persona={persona}
+                index={index}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

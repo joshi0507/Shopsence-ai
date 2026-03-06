@@ -56,14 +56,17 @@ class SalesData:
         # Add metadata to each record
         records = []
         for record in data:
+            units = int(record.get('units_sold', 0))
+            price = float(record.get('price', 0))
             processed_record = {
                 'user_id': ObjectId(user_id),
                 'upload_id': upload_id,
+                'customer_id': str(record.get('customer_id', 'Unknown')),
                 'product_name': record.get('product_name', ''),
                 'date': self._parse_date(record.get('date')),
-                'units_sold': int(record.get('units_sold', 0)),
-                'price': float(record.get('price', 0)),
-                'revenue': float(record.get('units_sold', 0)) * float(record.get('price', 0)),
+                'units_sold': units,
+                'price': price,
+                'revenue': units * price,
                 'category': record.get('category', 'Uncategorized'),
                 'created_at': datetime.utcnow()
             }
@@ -71,6 +74,30 @@ class SalesData:
         
         result = self.collection.insert_many(records)
         return len(result.inserted_ids)
+
+    def get_total_customers(self, user_id: str, upload_id: Optional[str] = None) -> int:
+        """
+        Get total unique customers count.
+        
+        Args:
+            user_id: User ObjectId as string.
+            upload_id: Optional upload session ID to filter.
+            
+        Returns:
+            int: Number of unique customer IDs.
+        """
+        match_stage = {'user_id': ObjectId(user_id)}
+        if upload_id:
+            match_stage['upload_id'] = upload_id
+            
+        pipeline = [
+            {'$match': match_stage},
+            {'$group': {'_id': '$customer_id'}},
+            {'$count': 'count'}
+        ]
+        
+        result = list(self.collection.aggregate(pipeline))
+        return result[0]['count'] if result else 0
     
     def find_by_upload_id(self, upload_id: str) -> List[Dict[str, Any]]:
         """
@@ -220,6 +247,39 @@ class SalesData:
         """
         result = self.collection.delete_many({'upload_id': upload_id})
         return result.deleted_count
+    
+    def get_transactions(self, user_id: str, upload_id: Optional[str] = None) -> pd.DataFrame:
+        """
+        Get transactions as a DataFrame for analysis.
+        
+        Args:
+            user_id: User ObjectId as string.
+            upload_id: Optional upload session ID to filter.
+        
+        Returns:
+            pd.DataFrame: Transaction data with columns: customer_id, product_name, date, 
+                         units_sold, price, revenue, category.
+        """
+        match_stage = {'user_id': ObjectId(user_id)}
+        if upload_id:
+            match_stage['upload_id'] = upload_id
+        
+        cursor = self.collection.find(match_stage).sort('date', -1)
+        records = list(cursor)
+        
+        if not records:
+            return pd.DataFrame(columns=['customer_id', 'product_name', 'date', 
+                                        'units_sold', 'price', 'revenue', 'category'])
+        
+        df = pd.DataFrame(records)
+        
+        # Select and rename relevant columns
+        columns = ['customer_id', 'product_name', 'date', 'units_sold', 'price', 'revenue', 'category']
+        for col in columns:
+            if col not in df.columns:
+                df[col] = None
+        
+        return df[columns]
     
     def _parse_date(self, date_value) -> datetime:
         """

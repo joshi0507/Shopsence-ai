@@ -55,9 +55,13 @@ export const ScrollReveal = ({
 };
 
 export const UseSkewScroll = () => {
-  const { scrollYProgress } = useScroll();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    container: containerRef,
+    target: containerRef,
+  });
   const skew = useTransform(scrollYProgress, [0, 1], [0, 2]); // Subtle skew
   const rotateX = useTransform(scrollYProgress, [0, 1], [0, 5]);
 
-  return { skew, rotateX };
+  return { skew, rotateX, containerRef };
 };

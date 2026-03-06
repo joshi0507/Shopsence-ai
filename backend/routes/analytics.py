@@ -7,6 +7,7 @@ Handles analytics queries, insights generation, and forecasting.
 
 from flask import Blueprint, request, jsonify, current_app, g
 from datetime import datetime, timedelta
+import pandas as pd
 
 from models.sales_data import SalesData
 from models.upload import UploadSession
@@ -15,7 +16,7 @@ from services.forecast_service import ForecastService
 from gemini_service import gemini_service
 from routes.auth import jwt_required
 
-analytics_bp = Blueprint('analytics', __name__, url_prefix='/api/analytics')
+analytics_bp = Blueprint('analytics', __name__)
 
 
 def get_sales_data_model():

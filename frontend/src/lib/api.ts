@@ -6,7 +6,7 @@
  */
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 // ============================================================================
 // Type Definitions
@@ -92,6 +92,7 @@ export interface KPIData {
   total_revenue: number;
   total_units: number;
   total_products: number;
+  total_customers: number;
   avg_order_value: number;
   avg_price: number;
 }
@@ -129,12 +130,6 @@ export interface TrendAnalysis {
   data_points: number;
 }
 
-export interface Recommendation {
-  priority: "high" | "medium" | "low";
-  category: "inventory" | "pricing" | "growth" | "marketing" | "data";
-  recommendation: string;
-}
-
 export interface AIInsights {
   performance_analysis: {
     title: string;
@@ -157,6 +152,177 @@ export interface AIInsights {
     title: string;
     content: string;
   };
+}
+
+// ============================================================================
+// Behavior Analytics Types
+// ============================================================================
+
+export interface Segment {
+  segment_id: number;
+  segment_name: string;
+  customer_count: number;
+  total_revenue: number;
+  avg_order_value: number;
+  size_percentage: number;
+  characteristics: {
+    avg_recency: number;
+    avg_frequency: number;
+    avg_monetary: number;
+    avg_rfm_score: number;
+  };
+}
+
+export interface Customer {
+  customer_id: string;
+  name?: string;
+  email?: string;
+  country?: string;
+  tenure?: string;
+  rfm_scores: {
+    recency: number;
+    frequency: number;
+    monetary: number;
+  };
+  total_purchases: number;
+  total_spend: number;
+  rfm_score: number;
+  frequency?: number;
+  monetary?: number;
+}
+
+export interface AffinityNode {
+  id: string;
+  label: string;
+  category?: string;
+  value: number;
+  color: string;
+  group?: string | number;
+}
+
+export interface AffinityLink {
+  source: string;
+  target: string;
+  strength?: number;
+  support: number;
+  confidence: number;
+  lift: number;
+  value?: number;
+}
+
+export interface AffinityRule {
+  antecedents: string;
+  consequents: string;
+  support: number;
+  confidence: number;
+  lift: number;
+  transactions: number;
+}
+
+export interface Bundle {
+  bundle_name: string;
+  products: string[];
+  affinity_score: number;
+  confidence: number;
+  support: number;
+  estimated_lift: string;
+}
+
+export interface SentimentOverview {
+  overall_score: number;
+  average_rating: number;
+  total_reviews: number;
+  distribution: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
+  percentages: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
+  rating_distribution: Record<string, number>;
+}
+
+export interface SentimentGauge {
+  score: number;
+  label: string;
+  color: string;
+  distribution: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
+  total: number;
+}
+
+export interface CategorySentiment {
+  category: string;
+  sentiment_score: number;
+  avg_rating: number;
+  review_count: number;
+  positive_percentage: number;
+  trend: string;
+}
+
+export interface Keyword {
+  word: string;
+  text?: string;
+  count: number;
+  sentiment: number;
+  sentiment_score?: number;
+}
+
+export interface AffinityResponse {
+  nodes: AffinityNode[];
+  links: AffinityLink[];
+  total_nodes: number;
+  total_links: number;
+}
+
+export interface Persona {
+  persona_id: number | string;
+  name: string;
+  role: string;
+  description: string;
+  avatar_initials: string;
+  color: string;
+  demographics: {
+    age_range: string;
+    gender?: Record<string, number>;
+    gender_split?: Record<string, number>;
+    top_locations: Record<string, number>;
+  };
+  behavior: {
+    avg_order_value: number;
+    purchase_frequency: string;
+    total_customers: number;
+    total_revenue: number;
+    avg_recency: number;
+    avg_rfm_score: number;
+  };
+  preferences: {
+    preferred_payment: string;
+    preferred_shipping?: string;
+    discount_sensitivity?: number | string;
+    top_categories?: string[];
+  };
+  segment_id?: number;
+}
+
+export interface Recommendation {
+  id?: string;
+  category: "inventory" | "pricing" | "growth" | "marketing" | "data" | string;
+  title?: string;
+  description?: string;
+  recommendation?: string;
+  expected_impact?: string;
+  priority: "high" | "medium" | "low" | "High" | "Medium" | "Low";
+  timeline?: string;
+  rank?: number;
+  data_support?: Record<string, any>;
+  implementation_steps?: string[];
 }
 
 export interface DashboardData {
@@ -362,7 +528,7 @@ class ShopSenseAPI {
     const response = await this.request<AuthTokens>("/auth/login", {
       method: "POST",
       body: JSON.stringify({
-        identifier: data.identifier || (data as any).username_or_email || '',
+        identifier: data.identifier || (data as any).username_or_email || "",
         password: data.password,
       }),
     });
@@ -375,22 +541,40 @@ class ShopSenseAPI {
   }
 
   async logout(): Promise<ApiResponse<void>> {
+    // Get refresh token before clearing
+    const refreshToken = this.token;
+
+    // Clear tokens locally
     this.clearToken();
-    return this.request("/auth/logout", { method: "POST" });
+
+    // Revoke tokens on server (send refresh token to revoke both)
+    return this.request("/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
     if (!this.token) {
       // Don't throw error if no token - this is normal when logged out
-      return { success: false, error: { code: 'TOKEN_MISSING', message: 'Not authenticated' } };
+      return {
+        success: false,
+        error: { code: "TOKEN_MISSING", message: "Not authenticated" },
+      };
     }
     return this.request<User>("/auth/me");
   }
 
-  async updateProfile(updates: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request<User>("/auth/me", {
+  async updateProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {
+    return this.request("/auth/me", {
       method: "PUT",
-      body: JSON.stringify(updates),
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async deleteAccount(): Promise<ApiResponse<void>> {
+    return this.request("/auth/me", {
+      method: "DELETE",
     });
   }
 
@@ -462,13 +646,29 @@ class ShopSenseAPI {
     return data;
   }
 
+  async manualUpload(records: any[]): Promise<
+    ApiResponse<{
+      upload_id: string;
+      rows_processed: number;
+      analysis: any;
+      recommendations: Recommendation[];
+    }>
+  > {
+    return this.request("/uploads/manual", {
+      method: "POST",
+      body: JSON.stringify({ records }),
+    });
+  }
+
   async getUploads(
     limit = 50,
     status?: string,
   ): Promise<ApiResponse<UploadSession[]>> {
-    const params = new URLSearchParams({ limit: limit.toString() });
+    const params = new URLSearchParams();
+    params.append("limit", limit.toString());
     if (status) params.append("status", status);
-    return this.request<UploadSession[]>(`/uploads?${params}`);
+
+    return this.request<UploadSession[]>(`/uploads?${params.toString()}`);
   }
 
   async getUpload(uploadId: string): Promise<ApiResponse<UploadSession>> {
@@ -476,11 +676,187 @@ class ShopSenseAPI {
   }
 
   async deleteUpload(uploadId: string): Promise<ApiResponse<void>> {
-    return this.request(`/uploads/${uploadId}`, { method: "DELETE" });
+    return this.request(`/uploads/${uploadId}`, {
+      method: "DELETE",
+    });
   }
 
   async getUploadData(uploadId: string): Promise<ApiResponse<any[]>> {
     return this.request<any[]>(`/uploads/${uploadId}/data`);
+  }
+
+  // -------------------------------------------------------------------------
+  // Behavior Endpoints
+  // -------------------------------------------------------------------------
+
+  async getBehaviorSegments(uploadId?: string): Promise<
+    ApiResponse<{
+      segments: Segment[];
+      segment_mapping: Record<number, string>;
+      visualization: {
+        labels: string[];
+        values: number[];
+        revenues: number[];
+        colors: string[];
+        percentages: number[];
+      };
+      total_customers: number;
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/segments${params}`);
+  }
+
+  async getSegmentCustomers(
+    segmentId: number,
+    uploadId?: string,
+    page = 1,
+    limit = 50,
+  ): Promise<
+    ApiResponse<{
+      customers: Customer[];
+      segment_name: string;
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        total_pages: number;
+      };
+    }>
+  > {
+    const params = new URLSearchParams();
+    if (uploadId) params.append("upload_id", uploadId);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+    return this.request(`/behavior/segments/${segmentId}/customers?${params}`);
+  }
+
+  async getAffinityNetwork(
+    uploadId?: string,
+    topN = 50,
+  ): Promise<
+    ApiResponse<{
+      nodes: AffinityNode[];
+      links: AffinityLink[];
+    }>
+  > {
+    const params = `?upload_id=${uploadId || ""}&top_n=${topN}`;
+    return this.request(`/behavior/affinity/network${params}`);
+  }
+
+  async getAffinityRules(
+    uploadId?: string,
+    minLift = 1.5,
+    minConfidence = 0.3,
+  ): Promise<
+    ApiResponse<{
+      rules: AffinityRule[];
+      total_rules: number;
+    }>
+  > {
+    const params = `?upload_id=${uploadId || ""}&min_lift=${minLift}&min_confidence=${minConfidence}`;
+    return this.request(`/behavior/affinity/rules${params}`);
+  }
+
+  async getAffinityBundles(
+    uploadId?: string,
+    minLift = 2.0,
+  ): Promise<
+    ApiResponse<{
+      bundles: Bundle[];
+      total_bundles: number;
+    }>
+  > {
+    const params = `?upload_id=${uploadId || ""}&min_lift=${minLift}`;
+    return this.request(`/behavior/affinity/bundles${params}`);
+  }
+
+  async getSentimentOverview(uploadId?: string): Promise<
+    ApiResponse<{
+      overview: SentimentOverview;
+      gauge: SentimentGauge;
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/sentiment/overview${params}`);
+  }
+
+  async getSentimentByCategory(uploadId?: string): Promise<
+    ApiResponse<{
+      categories: CategorySentiment[];
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/sentiment/by-category${params}`);
+  }
+
+  async getSentimentKeywords(uploadId?: string): Promise<
+    ApiResponse<{
+      positive_keywords: Keyword[];
+      negative_keywords: Keyword[];
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/sentiment/keywords${params}`);
+  }
+
+  async getPersonas(uploadId?: string): Promise<
+    ApiResponse<{
+      personas: Persona[];
+      total_personas: number;
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/personas${params}`);
+  }
+
+  async getRecommendations(
+    uploadId?: string,
+    category?: string,
+    priority?: string,
+  ): Promise<
+    ApiResponse<{
+      recommendations: Recommendation[];
+      summary: {
+        total: number;
+        high_priority: number;
+        medium_priority: number;
+        low_priority: number;
+        by_category: Record<string, number>;
+        by_timeline: Record<string, number>;
+      };
+    }>
+  > {
+    const params = new URLSearchParams();
+    if (uploadId) params.append("upload_id", uploadId);
+    if (category) params.append("category", category);
+    if (priority) params.append("priority", priority);
+    return this.request(`/behavior/recommendations?${params}`);
+  }
+
+  async getBehavioralInsightsSummary(uploadId?: string): Promise<
+    ApiResponse<{
+      segments: {
+        list: Segment[];
+        mapping: Record<number, string>;
+        total: number;
+      };
+      affinity: {
+        rules_count: number;
+        bundles: Bundle[];
+      };
+      sentiment: SentimentOverview;
+      personas: Persona[];
+      recommendations: Recommendation[];
+      summary: {
+        total_customers: number;
+        total_products: number;
+        total_transactions: number;
+      };
+    }>
+  > {
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/behavior/insights/summary${params}`);
   }
 
   // -------------------------------------------------------------------------
@@ -573,15 +949,26 @@ class ShopSenseAPI {
     return this.request<KPIData>(`/dashboard/kpis${params}`);
   }
 
-  async getCharts(uploadId?: string): Promise<
+  async getCharts(
+    uploadId?: string,
+    days?: number,
+  ): Promise<
     ApiResponse<{
       top_products: ProductData[];
       low_products: ProductData[];
       time_series: TrendData[];
     }>
   > {
+    let params = [];
+    if (uploadId) params.push(`upload_id=${uploadId}`);
+    if (days) params.push(`days=${days}`);
+    const queryString = params.length > 0 ? `?${params.join("&")}` : "";
+    return this.request(`/dashboard/charts${queryString}`);
+  }
+
+  async getTips(uploadId?: string): Promise<ApiResponse<any[]>> {
     const params = uploadId ? `?upload_id=${uploadId}` : "";
-    return this.request(`/dashboard/charts${params}`);
+    return this.request<any[]>(`/behavior/tips${params}`);
   }
 
   // -------------------------------------------------------------------------

@@ -22,7 +22,7 @@ const parseGraph = (graphData: any) => {
   try {
     if (!graphData) return null;
     // If it's already an object, use it directly; if it's a string, parse it
-    if (typeof graphData === 'string') {
+    if (typeof graphData === "string") {
       return JSON.parse(graphData);
     }
     return graphData;
@@ -47,15 +47,16 @@ const AnalysisReport = ({
 
   // Memoize charts to prevent re-renders - MUST be called before any early returns
   const charts = useMemo(() => {
-    if (!data?.results) return {
-      mostSelling: null,
-      lowSelling: null,
-      highCost: null,
-      lowCost: null,
-      prediction: null,
-      productReport: null,
-    };
-    
+    if (!data?.results)
+      return {
+        mostSelling: null,
+        lowSelling: null,
+        highCost: null,
+        lowCost: null,
+        prediction: null,
+        productReport: null,
+      };
+
     return {
       mostSelling: parseGraph(data.results.most_selling?.graph),
       lowSelling: parseGraph(data.results.low_selling?.graph),
@@ -77,11 +78,7 @@ const AnalysisReport = ({
         if (latest) {
           const histRes = await api.getUploads();
 
-          if (
-            histRes.success &&
-            histRes.data &&
-            histRes.data.length > 0
-          ) {
+          if (histRes.success && histRes.data && histRes.data.length > 0) {
             const completed = histRes.data.find(
               (u: any) => u.status === "completed",
             );
@@ -114,7 +111,7 @@ const AnalysisReport = ({
         if (res.success && res.data) {
           // Check if we have analysis data (either in results or analysis field)
           const analysisData = res.data.results || (res.data as any).analysis;
-          
+
           if (!analysisData) {
             setErrorStatus(
               "Analysis results not available. The upload may still be processing.",
@@ -122,16 +119,18 @@ const AnalysisReport = ({
             setLoading(false);
             return;
           }
-          
+
           // Store the data with analysis in results field for compatibility
           const dataWithResults = {
             ...res.data,
-            results: analysisData
+            results: analysisData,
           };
-          
+
           setData(dataWithResults);
         } else {
-          setErrorStatus(res.error?.message || "Failed to load report details.");
+          setErrorStatus(
+            res.error?.message || "Failed to load report details.",
+          );
         }
       } catch (error: any) {
         setErrorStatus(
@@ -183,71 +182,76 @@ const AnalysisReport = ({
   const financialInsights = aiInsights.financial_insights || {};
   const executiveSummary = aiInsights.executive_summary || {};
 
-  const PlotlyChart = memo(({ plotData, note, title }: any) => {
-    if (!plotData || !plotData.data) {
-      return null; // Don't render empty charts
-    }
+  const PlotlyChart = memo(
+    ({ plotData, note, title }: any) => {
+      if (!plotData || !plotData.data) {
+        return null; // Don't render empty charts
+      }
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="glass rounded-3xl p-6 flex flex-col"
-        whileHover={{ scale: 1.02 }} // Add subtle hover effect instead of triggering re-render
-      >
-        <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
-        <div className="min-h-[350px] w-full" style={{ height: '350px' }}>
-          <Plot
-            data={plotData.data}
-            layout={{
-              ...plotData.layout,
-              autosize: true,
-              width: undefined, // Let Plotly handle width
-              height: 300, // Set explicit height
-              paper_bgcolor: "rgba(0,0,0,0)",
-              plot_bgcolor: "rgba(15,15,25,0.5)",
-              font: { color: "#9ca3af", size: 11 },
-              margin: { t: 30, r: 30, b: 70, l: 50 },
-              showlegend: false, // Hide legend for single trace
-              xaxis: {
-                ...plotData.layout?.xaxis,
-                gridcolor: "rgba(255,255,255,0.05)",
-                tickfont: { color: "#9ca3af", size: 9 },
-                color: "#9ca3af",
-                tickangle: -45, // Angle labels for better fit
-              },
-              yaxis: {
-                ...plotData.layout?.yaxis,
-                gridcolor: "rgba(255,255,255,0.05)",
-                tickfont: { color: "#9ca3af", size: 9 },
-                color: "#9ca3af",
-              },
-            }}
-            config={{
-              displayModeBar: false,
-              responsive: true,
-              staticPlot: false, // Allow interactions
-            }}
-            style={{ width: "100%", height: "300px" }}
-            useResizeHandler={true}
-          />
-        </div>
-        {note && (
-          <p className="mt-4 text-xs text-gray-400 leading-relaxed border-t border-white/5 pt-4">
-            {note}
-          </p>
-        )}
-      </motion.div>
-    );
-  }, (prevProps, nextProps) => {
-    // Custom comparison function to prevent unnecessary re-renders
-    return (
-      prevProps.plotData === nextProps.plotData &&
-      prevProps.note === nextProps.note &&
-      prevProps.title === nextProps.title
-    );
-  });
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="glass rounded-3xl p-6 flex flex-col"
+        >
+          <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
+          <div className="min-h-[350px] w-full" style={{ height: "350px" }}>
+            <Plot
+              data={plotData.data}
+              layout={{
+                ...plotData.layout,
+                autosize: true,
+                width: undefined, // Let Plotly handle width
+                height: 300, // Set explicit height
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(15,15,25,0.5)",
+                font: { color: "#9ca3af", size: 11 },
+                margin: { t: 30, r: 30, b: 70, l: 50 },
+                showlegend: false, // Hide legend for single trace
+                xaxis: {
+                  ...plotData.layout?.xaxis,
+                  gridcolor: "rgba(255,255,255,0.05)",
+                  tickfont: { color: "#9ca3af", size: 9 },
+                  color: "#9ca3af",
+                  tickangle: -45, // Angle labels for better fit
+                },
+                yaxis: {
+                  ...plotData.layout?.yaxis,
+                  gridcolor: "rgba(255,255,255,0.05)",
+                  tickfont: { color: "#9ca3af", size: 9 },
+                  color: "#9ca3af",
+                },
+              }}
+              config={{
+                displayModeBar: false,
+                responsive: false,
+                staticPlot: true,
+                
+                displaylogo: false,
+                scrollZoom: false,
+              }}
+              style={{ width: "100%", height: "300px" }}
+              useResizeHandler={false}
+            />
+          </div>
+          {note && (
+            <p className="mt-4 text-xs text-gray-400 leading-relaxed border-t border-white/5 pt-4">
+              {note}
+            </p>
+          )}
+        </motion.div>
+      );
+    },
+    (prevProps, nextProps) => {
+      // Custom comparison function to prevent unnecessary re-renders
+      return (
+        prevProps.plotData === nextProps.plotData &&
+        prevProps.note === nextProps.note &&
+        prevProps.title === nextProps.title
+      );
+    },
+  );
 
   const InsightCard = ({ icon: Icon, title, items, color }: any) => {
     if (!items || items.length === 0) return null;
@@ -316,19 +320,35 @@ const AnalysisReport = ({
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-400">{data.results.products || 'N/A'}</div>
+              <div className="text-2xl font-bold text-cyan-400">
+                {data.results.products || "N/A"}
+              </div>
               <div className="text-sm text-gray-400">Products</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{data.results.rows_processed || 'N/A'}</div>
+              <div className="text-2xl font-bold text-green-400">
+                {data.results.rows_processed || "N/A"}
+              </div>
               <div className="text-sm text-gray-400">Rows Processed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">{data.results.date_range?.start ? new Date(data.results.date_range.start).toLocaleDateString() || data.results.date_range.start : 'N/A'}</div>
+              <div className="text-2xl font-bold text-purple-400">
+                {data.results.date_range?.start
+                  ? new Date(
+                      data.results.date_range.start,
+                    ).toLocaleDateString() || data.results.date_range.start
+                  : "N/A"}
+              </div>
               <div className="text-sm text-gray-400">Start Date</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">{data.results.date_range?.end ? new Date(data.results.date_range.end).toLocaleDateString() || data.results.date_range.end : 'N/A'}</div>
+              <div className="text-2xl font-bold text-orange-400">
+                {data.results.date_range?.end
+                  ? new Date(
+                      data.results.date_range.end,
+                    ).toLocaleDateString() || data.results.date_range.end
+                  : "N/A"}
+              </div>
               <div className="text-sm text-gray-400">End Date</div>
             </div>
           </div>
@@ -452,17 +472,20 @@ const AnalysisReport = ({
             title="Low Cost but Most Sold Products"
           />
         )}
-        
+
         {/* No Charts Available Message */}
-        {!Object.values(charts).some(chart => chart !== null) && (
+        {!Object.values(charts).some((chart) => chart !== null) && (
           <div className="glass-card rounded-3xl p-8 mb-8 text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <BarChart className="w-6 h-6 text-gray-400" />
-              <h3 className="text-xl font-bold text-white">Charts Not Available</h3>
+              <h3 className="text-xl font-bold text-white">
+                Charts Not Available
+              </h3>
             </div>
             <p className="text-gray-400 text-base">
-              Detailed charts and visualizations will be available once the advanced analytics processing is complete.
-              The basic analysis summary above shows your key metrics.
+              Detailed charts and visualizations will be available once the
+              advanced analytics processing is complete. The basic analysis
+              summary above shows your key metrics.
             </p>
           </div>
         )}

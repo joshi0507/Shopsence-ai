@@ -12,7 +12,7 @@ class TestAuthRegistration:
     
     def test_register_success(self, client, db):
         """Test successful user registration."""
-        response = client.post('/api/auth/register', json={
+        response = client.post('/api/v1/auth/register', json={
             'username': 'newuser',
             'email': 'newuser@example.com',
             'password': 'SecurePass123!',
@@ -29,7 +29,7 @@ class TestAuthRegistration:
     
     def test_register_duplicate_email(self, client, db, test_user):
         """Test registration with duplicate email."""
-        response = client.post('/api/auth/register', json={
+        response = client.post('/api/v1/auth/register', json={
             'username': 'anotheruser',
             'email': 'test@example.com',  # Already exists
             'password': 'SecurePass123!'
@@ -42,7 +42,7 @@ class TestAuthRegistration:
     
     def test_register_weak_password(self, client, db):
         """Test registration with weak password."""
-        response = client.post('/api/auth/register', json={
+        response = client.post('/api/v1/auth/register', json={
             'username': 'weakuser',
             'email': 'weak@example.com',
             'password': 'weak'  # Too short
@@ -56,7 +56,7 @@ class TestAuthRegistration:
     
     def test_register_invalid_email(self, client, db):
         """Test registration with invalid email."""
-        response = client.post('/api/auth/register', json={
+        response = client.post('/api/v1/auth/register', json={
             'username': 'bademail',
             'email': 'not-an-email',
             'password': 'SecurePass123!'
@@ -73,7 +73,7 @@ class TestAuthLogin:
     
     def test_login_success(self, client, db, test_user):
         """Test successful login."""
-        response = client.post('/api/auth/login', json={
+        response = client.post('/api/v1/auth/login', json={
             'identifier': 'test@example.com',
             'password': 'Test123!@#'
         })
@@ -87,7 +87,7 @@ class TestAuthLogin:
     
     def test_login_wrong_password(self, client, db, test_user):
         """Test login with wrong password."""
-        response = client.post('/api/auth/login', json={
+        response = client.post('/api/v1/auth/login', json={
             'identifier': 'test@example.com',
             'password': 'WrongPassword123!'
         })
@@ -100,7 +100,7 @@ class TestAuthLogin:
     
     def test_login_nonexistent_user(self, client, db):
         """Test login with non-existent user."""
-        response = client.post('/api/auth/login', json={
+        response = client.post('/api/v1/auth/login', json={
             'identifier': 'nonexistent@example.com',
             'password': 'SomePassword123!'
         })
@@ -117,7 +117,7 @@ class TestAuthProtected:
     def test_get_current_user_authenticated(self, client, db, test_user, auth_token):
         """Test getting current user with valid token."""
         response = client.get(
-            '/api/auth/me',
+            '/api/v1/auth/me',
             headers={'Authorization': f'Bearer {auth_token}'}
         )
         
@@ -129,7 +129,7 @@ class TestAuthProtected:
     
     def test_get_current_user_unauthenticated(self, client, db):
         """Test getting current user without token."""
-        response = client.get('/api/auth/me')
+        response = client.get('/api/v1/auth/me')
         
         data = response.get_json()
         
@@ -140,7 +140,7 @@ class TestAuthProtected:
     def test_get_current_user_invalid_token(self, client, db):
         """Test getting current user with invalid token."""
         response = client.get(
-            '/api/auth/me',
+            '/api/v1/auth/me',
             headers={'Authorization': 'Bearer invalid-token'}
         )
         

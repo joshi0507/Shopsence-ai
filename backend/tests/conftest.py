@@ -5,11 +5,16 @@ Pytest fixtures for testing.
 
 import pytest
 import os
+import numpy as np
 from datetime import datetime, timedelta
 
 # Set test environment before importing app
 os.environ['FLASK_ENV'] = 'testing'
-os.environ['MONGO_URI'] = 'mongodb://localhost:27017/shopsense_test'
+# Use the same Atlas URI but a different database for tests
+if not os.environ.get('MONGO_URI'):
+    from dotenv import load_dotenv
+    load_dotenv()
+
 os.environ['SECRET_KEY'] = 'test-secret-key-for-testing-only'
 os.environ['JWT_SECRET_KEY'] = 'test-jwt-secret-key-for-testing-only'
 
@@ -24,6 +29,7 @@ def app():
         'TESTING': True,
         'WTF_CSRF_ENABLED': False,
         'JWT_ACCESS_TOKEN_EXPIRES': 300,  # 5 minutes for tests
+        'MONGO_DB_NAME': 'shopsense_test'
     })
     
     yield app
@@ -74,7 +80,7 @@ def test_user(db):
 @pytest.fixture
 def auth_token(client, test_user):
     """Get authentication token for test user."""
-    response = client.post('/api/auth/login', json={
+    response = client.post('/api/v1/auth/login', json={
         'identifier': 'test@example.com',
         'password': 'Test123!@#'
     })

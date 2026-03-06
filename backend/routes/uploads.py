@@ -16,7 +16,7 @@ from models.sales_data import SalesData
 from services.analytics_service import AnalyticsService
 from routes.auth import jwt_required
 
-uploads_bp = Blueprint('uploads', __name__, url_prefix='/api/uploads')
+uploads_bp = Blueprint('uploads', __name__)
 
 
 def get_upload_model():
@@ -209,7 +209,85 @@ def upload_file():
         current_app.logger.error(f'Upload error: {str(e)}')
         return jsonify({
             'success': False,
-            'error': {'code': 'INTERNAL_ERROR', 'message': 'Upload failed'}
+            'error': {'code': 'INTERNAL_ERROR', 'message': f'Upload failed: {str(e)}'}
+        }), 500
+
+
+@uploads_bp.route('/manual', methods=['POST'])
+@jwt_required
+def manual_entry():
+    """
+    Process manually entered sales data.
+    
+    Request Body:
+        data (list): List of sales records
+    """
+    try:
+        data = request.get_json()
+        if not data or 'records' not in data:
+            return jsonify({
+                'success': False,
+                'error': {'code': 'INVALID_REQUEST', 'message': 'Records list is required'}
+            }), 400
+        
+        records = data['records']
+        if not records:
+             return jsonify({
+                'success': False,
+                'error': {'code': 'NO_DATA', 'message': 'At least one record is required'}
+            }), 400
+
+        # Create upload session
+        upload_model = get_upload_model()
+        upload_session = upload_model.create(
+            user_id=g.current_user['user_id'],
+            filename='Manual Entry',
+            file_type='manual',
+            file_size=len(str(records))
+        )
+        
+        # Store sales data
+        sales_model = get_sales_data_model()
+        inserted_count = sales_model.insert_many(
+            user_id=g.current_user['user_id'],
+            upload_id=upload_session['upload_id'],
+            data=records
+        )
+        
+        # Generate initial analytics
+        analytics_service = AnalyticsService()
+        product_df = sales_model.get_product_summary(g.current_user['user_id'], upload_session['upload_id'])
+        analysis = analytics_service.analyze_product_performance(product_df)
+        chart_data = analytics_service._generate_chart_data(product_df)
+        recommendations = analytics_service.generate_recommendations(analysis)
+        
+        # Update session
+        upload_model.update_row_count(upload_session['upload_id'], len(records))
+        upload_model.update_status(
+            upload_session['upload_id'],
+            UploadSession.STATUS_COMPLETED,
+            results={
+                'rows_processed': inserted_count,
+                **chart_data
+            }
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Manual data processed successfully',
+            'data': {
+                'upload_id': upload_session['upload_id'],
+                'rows_processed': inserted_count,
+                'analysis': {**analysis, **chart_data},
+                'recommendations': recommendations
+            }
+        }), 201
+        
+    except Exception as e:
+        current_app.logger.error(f'Manual entry error: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': {'code': 'INTERNAL_ERROR', 'message': f'Processing failed: {str(e)}'}
         }), 500
 
 

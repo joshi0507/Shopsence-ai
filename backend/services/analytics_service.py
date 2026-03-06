@@ -51,12 +51,17 @@ class AnalyticsService:
         # Price segmentation
         price_quartiles = df['price'].quantile([0.25, 0.5, 0.75])
         
-        # Performance categories
-        df['performance_category'] = pd.cut(
-            df['units_sold'],
-            bins=[0, df['units_sold'].quantile(0.33), df['units_sold'].quantile(0.67), float('inf')],
-            labels=['Low Performer', 'Medium Performer', 'High Performer']
-        )
+        # Performance categories - handle edge case where all products have same units
+        try:
+            quantiles = df['units_sold'].quantile([0.33, 0.67])
+            df['performance_category'] = pd.cut(
+                df['units_sold'],
+                bins=[0, quantiles[0.33], quantiles[0.67], float('inf')],
+                labels=['Low Performer', 'Medium Performer', 'High Performer']
+            )
+        except (ValueError, KeyError):
+            # If quantiles cannot be computed, assign all to Medium
+            df['performance_category'] = 'Medium Performer'
         
         return {
             'summary': {

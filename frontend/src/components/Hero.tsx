@@ -56,7 +56,7 @@ const FloatingCube = ({ position, color, delay = 0 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
   return (
-    <Float speed={2} rotationIntensity={0.5} floatIntensity={1} delay={delay}>
+    <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
       <mesh ref={meshRef} position={position}>
         <boxGeometry args={[0.5, 0.5, 0.5]} />
         <meshStandardMaterial
