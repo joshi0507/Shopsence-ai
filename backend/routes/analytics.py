@@ -278,8 +278,22 @@ def get_ai_insights():
         }
         
         # Get AI insights
-        insights = gemini_service.generate_business_insights(analytics_data)
-        
+        try:
+            insights = gemini_service.generate_business_insights(analytics_data)
+            current_app.logger.info(f"AI insights generated successfully")
+        except Exception as e:
+            current_app.logger.error(f"Failed to generate AI insights: {str(e)}")
+            # Return analysis without AI insights
+            insights = {
+                'success': False,
+                'ai_insights': {
+                    'performance_analysis': analysis,
+                    'market_insights': {'summary': 'AI insights temporarily unavailable'},
+                    'strategic_recommendations': {'immediate_actions': trends.get('recommendations', [])},
+                    'executive_summary': {'title': 'Analysis Complete', 'content': 'AI insights are being updated'}
+                }
+            }
+
         return jsonify({
             'success': True,
             'data': insights

@@ -30,7 +30,7 @@
 
 ### 1.1 Product Overview
 
-**ShopSense AI** is an intelligent, AI-powered business analytics platform designed to transform raw sales data into actionable business insights. The platform combines advanced data analytics, machine learning forecasting, and generative AI to provide businesses with comprehensive intelligence for data-driven decision-making.
+**ShopSense AI** is an intelligent, AI-powered business analytics platform designed to transform raw sales data into actionable business insights. The platform combines advanced data analytics, machine learning forecasting, and generative AI to provide businesses with comprehensive intelligence for data-driven decision making.
 
 ### 1.2 Value Proposition
 

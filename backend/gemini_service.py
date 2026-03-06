@@ -85,45 +85,47 @@ class GeminiInsightsService:
     
     def _build_insights_prompt(self, data: Dict[str, Any]) -> str:
         """Build comprehensive prompt for Gemini AI"""
-        
+
         prompt = """
         You are a senior business analyst and data scientist expert. Analyze the following sales analytics data and provide comprehensive business insights.
-        
+
+        IMPORTANT: Respond ONLY with valid JSON. Do not use markdown formatting. Do not add any prefix text like "Here's the analysis" or "Sure!". Just output pure JSON.
+
         SALES ANALYTICS DATA:
         {analytics_data}
-        
+
         Please provide detailed business insights covering these areas:
-        
+
         1. **PERFORMANCE ANALYSIS**
            - Top performing products and their success factors
            - Underperforming products and improvement opportunities
            - Revenue trends and patterns
            - Product portfolio optimization recommendations
-        
+
         2. **MARKET INSIGHTS**
            - Customer behavior patterns
            - Market trends and opportunities
            - Competitive positioning insights
            - Growth potential areas
-        
+
         3. **STRATEGIC RECOMMENDATIONS**
            - Short-term actions (next 30 days)
            - Medium-term strategies (next 90 days)
            - Long-term initiatives (next 6-12 months)
            - Risk mitigation strategies
-        
+
         4. **FINANCIAL INSIGHTS**
            - Revenue optimization opportunities
            - Cost reduction strategies
            - Pricing strategy recommendations
            - ROI improvement suggestions
-        
+
         5. **OPERATIONAL EFFICIENCY**
            - Inventory management insights
            - Supply chain optimization
            - Process improvement recommendations
            - Technology integration opportunities
-        
+
         Format your response as structured JSON with the following schema:
         {{
             "ai_insights": {{
@@ -167,27 +169,37 @@ class GeminiInsightsService:
                 }}
             }}
         }}
-        
+
+        CRITICAL: Output ONLY the JSON object. No markdown. No prefix text. No explanations. Just pure valid JSON.
         Make insights actionable, specific, and data-driven. Focus on practical business value.
         """.format(analytics_data=json.dumps(data, indent=2, default=str))
-        
+
         return prompt
     
     def _parse_gemini_response(self, response_text: str) -> Dict[str, Any]:
         """Parse Gemini response and ensure proper JSON structure"""
         try:
-            # Try to extract JSON from response
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}') + 1
-            
-            if start_idx != -1 and end_idx != -1:
-                json_str = response_text[start_idx:end_idx]
-                insights = json.loads(json_str)
-                return insights
+            # Remove markdown code blocks if present
+            cleaned_text = response_text.strip()
+
+            # Remove markdown code block markers (```json ... ```)
+            if cleaned_text.startswith('```'):
+                # Find the first { after markdown markers
+                start_idx = cleaned_text.find('{')
+                end_idx = cleaned_text.rfind('}') + 1
+                if start_idx != -1 and end_idx != -1:
+                    cleaned_text = cleaned_text[start_idx:end_idx]
             else:
-                # Fallback: create structured insights from text
-                return self._create_insights_from_text(response_text)
-                
+                # Try to extract JSON from response
+                start_idx = cleaned_text.find('{')
+                end_idx = cleaned_text.rfind('}') + 1
+                if start_idx != -1 and end_idx != -1:
+                    cleaned_text = cleaned_text[start_idx:end_idx]
+
+            # Parse the JSON
+            insights = json.loads(cleaned_text)
+            return insights
+
         except json.JSONDecodeError as e:
             logger.error(f"JSON parsing error: {str(e)}")
             return self._create_insights_from_text(response_text)

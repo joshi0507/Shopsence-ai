@@ -8,9 +8,9 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
-// ============================================================================
+// ======
 // Type Definitions
-// ============================================================================
+// ======
 
 export interface User {
   id: string;
@@ -154,9 +154,9 @@ export interface AIInsights {
   };
 }
 
-// ============================================================================
+// ======
 // Behavior Analytics Types
-// ============================================================================
+// ======
 
 export interface Segment {
   segment_id: number;
@@ -367,9 +367,9 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
   };
 }
 
-// ============================================================================
+// ======
 // API Error Classes
-// ============================================================================
+// ======
 
 export class ApiError extends Error {
   constructor(
@@ -400,9 +400,9 @@ export class ValidationError extends ApiError {
   }
 }
 
-// ============================================================================
+// ======
 // API Client Class
-// ============================================================================
+// ======
 
 class ShopSenseAPI {
   private baseURL: string;
@@ -949,30 +949,18 @@ class ShopSenseAPI {
     return this.request<KPIData>(`/dashboard/kpis${params}`);
   }
 
-<<<<<<< HEAD
+
   async getCharts(
     uploadId?: string,
-    days?: number,
   ): Promise<
-=======
-  async getCharts(uploadId?: string): Promise<
->>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
     ApiResponse<{
       top_products: ProductData[];
       low_products: ProductData[];
       time_series: TrendData[];
     }>
   > {
-<<<<<<< HEAD
-    let params = [];
-    if (uploadId) params.push(`upload_id=${uploadId}`);
-    if (days) params.push(`days=${days}`);
-    const queryString = params.length > 0 ? `?${params.join("&")}` : "";
-    return this.request(`/dashboard/charts${queryString}`);
-=======
     const params = uploadId ? `?upload_id=${uploadId}` : "";
     return this.request(`/dashboard/charts${params}`);
->>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
   }
 
   async getTips(uploadId?: string): Promise<ApiResponse<any[]>> {
@@ -997,9 +985,9 @@ class ShopSenseAPI {
   }
 }
 
-// ============================================================================
+// ======
 // Export Singleton Instance
-// ============================================================================
+// ======
 
 export const api = new ShopSenseAPI();
 export default api;

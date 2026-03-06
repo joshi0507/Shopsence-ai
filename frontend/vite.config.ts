@@ -17,13 +17,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-<<<<<<< HEAD
-=======
+
+
   test: {
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,
   },
->>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
+
 });
