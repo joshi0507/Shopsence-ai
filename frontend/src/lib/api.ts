@@ -949,21 +949,30 @@ class ShopSenseAPI {
     return this.request<KPIData>(`/dashboard/kpis${params}`);
   }
 
+<<<<<<< HEAD
   async getCharts(
     uploadId?: string,
     days?: number,
   ): Promise<
+=======
+  async getCharts(uploadId?: string): Promise<
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
     ApiResponse<{
       top_products: ProductData[];
       low_products: ProductData[];
       time_series: TrendData[];
     }>
   > {
+<<<<<<< HEAD
     let params = [];
     if (uploadId) params.push(`upload_id=${uploadId}`);
     if (days) params.push(`days=${days}`);
     const queryString = params.length > 0 ? `?${params.join("&")}` : "";
     return this.request(`/dashboard/charts${queryString}`);
+=======
+    const params = uploadId ? `?upload_id=${uploadId}` : "";
+    return this.request(`/dashboard/charts${params}`);
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
   }
 
   async getTips(uploadId?: string): Promise<ApiResponse<any[]>> {

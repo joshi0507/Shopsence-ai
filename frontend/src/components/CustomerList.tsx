@@ -171,26 +171,43 @@ const CustomerList = ({ uploadId, segmentId, onBack }: CustomerListProps) => {
                           </div>
                           <div className="text-gray-500 text-xs flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
+<<<<<<< HEAD
                             Active for {typeof customer.tenure === 'number' ? Math.round(customer.tenure) : 'N/A'} days
+=======
+                            Active for {(customer.tenure || 0).toFixed(0)} days
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <div className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold">
+<<<<<<< HEAD
                             {customer.rfm_scores?.recency}
                             {customer.rfm_scores?.frequency}
                             {customer.rfm_scores?.monetary}
                           </div>
                           <div className="text-xs text-gray-500">
                             {customer.frequency || customer.total_purchases} orders
+=======
+                            {customer.rfm_scores?.R}
+                            {customer.rfm_scores?.F}
+                            {customer.rfm_scores?.M}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {customer.frequency} orders
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="text-white font-bold">
                           $
+<<<<<<< HEAD
                           {(customer.monetary || customer.total_spend)?.toLocaleString(undefined, {
+=======
+                          {customer.monetary?.toLocaleString(undefined, {
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}

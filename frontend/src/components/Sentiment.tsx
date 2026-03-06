@@ -350,7 +350,11 @@ const Sentiment = ({ uploadId }: SentimentProps) => {
                           key={i}
                           className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-300 rounded-full text-sm"
                         >
+<<<<<<< HEAD
                           {kw.word} ({kw.count})
+=======
+                          {kw.text} ({kw.count})
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
                         </span>
                       ))}
                     </div>
@@ -369,7 +373,11 @@ const Sentiment = ({ uploadId }: SentimentProps) => {
                           key={i}
                           className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-300 rounded-full text-sm"
                         >
+<<<<<<< HEAD
                           {kw.word} ({kw.count})
+=======
+                          {kw.text} ({kw.count})
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
                         </span>
                       ))}
                     </div>

@@ -62,7 +62,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [latestUploadId, setLatestUploadId] = useState<string | undefined>(
     undefined,
   );
+<<<<<<< HEAD
   const [refreshKey, setRefreshKey] = useState(0);
+=======
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
 
   // Check if this is first login and show welcome
   useEffect(() => {
@@ -97,7 +100,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             (f: any) => f.status === "completed",
           );
           if (completed.length > 0) {
+<<<<<<< HEAD
             // Always set to the most recent completed upload
+=======
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
             setLatestUploadId(completed[0].upload_id);
           }
           setUserProgress({
@@ -265,7 +271,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             onNavigate={handleNavigate}
             onViewReport={handleViewReport}
             uploadId={latestUploadId}
+<<<<<<< HEAD
             refreshKey={refreshKey}
+=======
+>>>>>>> 9549c6a (enhancement and debugging of the ShopSense AI platform.)
           />
         );
     }
